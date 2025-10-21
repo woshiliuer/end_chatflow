@@ -24,3 +24,8 @@ spring:
           auth: true
           ssl:
             enable: true
+
+chatflow:
+  jwt:
+    secret: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/
+    expiration-minutes: 30
