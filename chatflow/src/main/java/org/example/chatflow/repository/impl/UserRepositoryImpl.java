@@ -14,10 +14,9 @@ import java.util.Optional;
 public class UserRepositoryImpl extends BaseRepositoryImpl<UserMapper, User, Long> implements UserRepository {
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return Optional.ofNullable(lambdaQuery()
-            .eq(User::getEmail, email)
-            .one());
+    public User findByEmail(String email) {
+        return lambdaQuery()
+            .eq(User::getEmail, email).one();
     }
 
     @Override

@@ -26,26 +26,17 @@ public class GlobalExceptionHandler {
         } else if (ex instanceof BindException bindException) {
             fieldError = bindException.getBindingResult().getFieldError();
         }
-        String message = fieldError != null
-            ? fieldError.getDefaultMessage()
-            : ErrorCode.VALIDATION_ERROR.getDefaultMessage();
-        return CurlResponse.failure(ErrorCode.VALIDATION_ERROR, message);
+        return CurlResponse.failure(ErrorCode.VALIDATION_ERROR);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public CurlResponse<Void> handleConstraintViolation(ConstraintViolationException ex) {
-        String message = ex.getConstraintViolations().stream()
-            .findFirst()
-            .map(ConstraintViolation::getMessage)
-            .orElse(ErrorCode.VALIDATION_ERROR.getDefaultMessage());
-        return CurlResponse.failure(ErrorCode.VALIDATION_ERROR, message);
+        return CurlResponse.failure(ErrorCode.VALIDATION_ERROR);
     }
 
     @ExceptionHandler(BusinessException.class)
     public CurlResponse<Void> handleBusinessException(BusinessException ex) {
-        ErrorCode errorCode = ex.getErrorCode();
-        String message = ex.getMessage() != null ? ex.getMessage() : errorCode.getDefaultMessage();
-        return CurlResponse.failure(errorCode, message);
+        return CurlResponse.failure(ex.getCode(),ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

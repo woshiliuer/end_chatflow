@@ -36,10 +36,7 @@ public final class CurlResponse<T> {
     }
 
     public static <T> CurlResponse<T> failure(ErrorCode errorCode) {
-        return new CurlResponse<>(errorCode.getCode(), errorCode.getDefaultMessage(), null);
+        return new CurlResponse<>(errorCode.getCode(), errorCode.getMessage(), null);
     }
 
-    public static <T> CurlResponse<T> failure(ErrorCode errorCode, String message) {
-        return new CurlResponse<>(errorCode.getCode(), message, null);
-    }
 }
