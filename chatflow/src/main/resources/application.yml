@@ -14,7 +14,7 @@ spring:
   mail:
     host: smtp.qq.com
     username: 1523307407@qq.com
-    password: lehymjjslqjaidci   # QQ 邮箱授权码
+    password: lehymjjslqjaidci
     port: 465
     protocol: smtps
     default-encoding: UTF-8
@@ -24,6 +24,13 @@ spring:
           auth: true
           ssl:
             enable: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 3000
+
 
 chatflow:
   jwt:
