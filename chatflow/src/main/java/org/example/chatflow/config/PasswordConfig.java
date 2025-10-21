@@ -13,7 +13,6 @@ public class PasswordConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt 内置随机盐，强度默认为 10，满足大多数业务场景。
         return new BCryptPasswordEncoder();
     }
 }
