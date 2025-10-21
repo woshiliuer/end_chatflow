@@ -2,7 +2,7 @@ package org.example.chatflow.handler;
 
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ConstraintViolation;
-import org.example.chatflow.common.CurlResponse;
+import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.constants.ErrorCode;
 import org.example.chatflow.common.exception.BusinessException;
 import org.slf4j.Logger;

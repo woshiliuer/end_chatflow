@@ -1,4 +1,4 @@
-package org.example.chatflow.common;
+package org.example.chatflow.common.entity;
 
 import java.io.Serializable;
 

@@ -1,4 +1,4 @@
-package org.example.chatflow.common;
+package org.example.chatflow.common.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -13,7 +13,7 @@ import org.example.chatflow.serializer.LongJsonSerializer;
  * @author by zzr
  */
 @Data
-public abstract class BaseEntity<T> extends AbstractEntity {
+public abstract class BaseEntity<T> implements Entity {
     public static final String FIELD_ID = "id";
     public static final String CREATE_USER_ID_COLUMN = "create_user_id";
     public static final String CREATE_BY_COLUMN = "create_by";
