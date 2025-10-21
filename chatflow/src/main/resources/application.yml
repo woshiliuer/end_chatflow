@@ -11,3 +11,16 @@ spring:
       max-lifetime: 1800000
       connection-timeout: 30000
       pool-name: HikariPool
+  mail:
+    host: smtp.qq.com
+    username: 1523307407@qq.com
+    password: lehymjjslqjaidci   # QQ 邮箱授权码
+    port: 465
+    protocol: smtps
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
