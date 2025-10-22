@@ -1,6 +1,6 @@
 package org.example.chatflow.utils;
 
-import org.example.chatflow.common.constants.ErrorCode;
+import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.exception.BusinessException;
 
 /**
@@ -14,7 +14,7 @@ public class VerifyUtil {
      * @param errorEnum
      */
     public static void isTrue(boolean flag, ErrorCode errorEnum) {
-        if (!flag) {
+        if (flag) {
             throw new BusinessException(errorEnum);
         }
     }
@@ -25,7 +25,7 @@ public class VerifyUtil {
      * @param errorEnum
      */
     public static void isFalse(boolean flag, ErrorCode errorEnum) {
-        if (flag) {
+        if (!flag) {
             throw new BusinessException(errorEnum);
         }
     }
@@ -49,6 +49,12 @@ public class VerifyUtil {
     public static void isTrue(boolean flag, String message) {
         if (flag) {
             throw new BusinessException(message);
+        }
+    }
+
+    public static void ensureOperationSucceeded(boolean flag, ErrorCode errorEnum) {
+        if (!flag) {
+            throw new BusinessException(errorEnum);
         }
     }
 }

@@ -27,7 +27,7 @@ public abstract class BaseEntity<T> implements Entity {
     )
     @TableId(
             value = "id",
-            type = IdType.ASSIGN_ID
+            type = IdType.AUTO
     )
     protected T id;
     @TableField(

@@ -12,3 +12,6 @@ CREATE TABLE `user` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
+ALTER TABLE `user`
+    ADD COLUMN `nickname` varchar(50) DEFAULT NULL COMMENT '昵称' AFTER `password`;

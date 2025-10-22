@@ -3,6 +3,7 @@ package org.example.chatflow.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.example.chatflow.common.entity.CurlResponse;
+import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.model.dto.User.LoginDTO;
 import org.example.chatflow.model.dto.User.RegisterDTO;
 import org.example.chatflow.service.UserService;
@@ -26,10 +27,16 @@ public class UserController {
         return userService.login(dto);
     }
 
+    @Operation(summary = "获取验证码",description = "参数传邮箱")
+    @PostMapping("/getVerfCode")
+    public CurlResponse<String> getVerfCode(@RequestBody @Validated Param<String> param) {
+        return userService.getVerfCode(param.getParam());
+    }
+
     @Operation(summary = "注册")
     @PostMapping("/register")
-    public String register(@RequestBody RegisterDTO dto){
-        return null;
+    public CurlResponse<String> register(@RequestBody RegisterDTO dto){
+        return userService.register(dto);
     }
 
 }

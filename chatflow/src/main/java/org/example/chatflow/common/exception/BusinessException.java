@@ -1,7 +1,7 @@
 package org.example.chatflow.common.exception;
 
 import lombok.Data;
-import org.example.chatflow.common.constants.ErrorCode;
+import org.example.chatflow.common.enums.ErrorCode;
 
 /**
  * @author by zzr

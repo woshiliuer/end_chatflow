@@ -22,7 +22,7 @@ import java.util.Map;
  * JWT 操作工具类：封装令牌生成与解析的常见逻辑。
  */
 @Component
-public class JwtUtils {
+public class JwtUtil {
 
     /** 配置文件中的原始密钥字符串。 */
     private final String secretValue;
@@ -33,8 +33,8 @@ public class JwtUtils {
     private Duration tokenTtl;
     private JwtParser jwtParser;
 
-    public JwtUtils(@Value("${chatflow.jwt.secret}") String secretValue,
-                    @Value("${chatflow.jwt.expiration-minutes:30}") long expirationMinutes) {
+    public JwtUtil(@Value("${chatflow.jwt.secret}") String secretValue,
+                   @Value("${chatflow.jwt.expiration-minutes:30}") long expirationMinutes) {
         this.secretValue = secretValue;
         this.expirationMinutes = expirationMinutes;
     }
@@ -89,5 +89,20 @@ public class JwtUtils {
      */
     public Claims parseToken(String token) {
         return jwtParser.parseClaimsJws(token).getBody();
+    }
+
+    /**
+     * Returns remaining lifetime in seconds for provided token.
+     * @param token JWT token string
+     * @return seconds until expiration; 0 if already expired or no expiration present
+     */
+    public long getRemainingSeconds(String token) {
+        Claims claims = parseToken(token);
+        Date expiration = claims.getExpiration();
+        if (expiration == null) {
+            return 0L;
+        }
+        long seconds = Duration.between(Instant.now(), expiration.toInstant()).getSeconds();
+        return Math.max(seconds, 0L);
     }
 }

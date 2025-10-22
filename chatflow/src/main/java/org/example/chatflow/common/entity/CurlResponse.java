@@ -5,7 +5,7 @@ package org.example.chatflow.common.entity;
  */
 
 import lombok.Data;
-import org.example.chatflow.common.constants.ErrorCode;
+import org.example.chatflow.common.enums.ErrorCode;
 
 @Data
 public final class CurlResponse<T> {

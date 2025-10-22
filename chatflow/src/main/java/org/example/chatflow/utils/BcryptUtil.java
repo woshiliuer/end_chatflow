@@ -1,5 +1,7 @@
 package org.example.chatflow.utils;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -7,13 +9,10 @@ import org.springframework.stereotype.Component;
  * 基于 BCrypt 的密码散列工具。
  */
 @Component
-public class PasswordUtils {
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+public class BcryptUtil {
 
     private final PasswordEncoder passwordEncoder;
-
-    public PasswordUtils(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
 
     /**
      * 使用 BCrypt 计算密码摘要。

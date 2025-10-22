@@ -1,13 +1,11 @@
 package org.example.chatflow.utils;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -15,16 +13,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author by zzr
  */
 @Component
-public class RedisUtils {
+public class RedisUtil {
 
 
-    private static final Logger log = LoggerFactory.getLogger(RedisUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(RedisUtil.class);
     private RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -32,6 +29,7 @@ public class RedisUtils {
      *
      * @param redisTemplate RedisTemplate Bean
      */
+    @Autowired
     @Qualifier("redisTemplate")
     public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
