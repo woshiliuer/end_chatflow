@@ -34,7 +34,7 @@ spring:
 
 chatflow:
   jwt:
-    secret: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/
+    secret: h2MycACBnf4UfHWUqTvA0zwRWU4iDVyzq8488P3l3FNUt78L6Yo5kwnhRRAdT3wWriEsLH2I
     expiration-minutes: 30
   security:
     whitelist:
