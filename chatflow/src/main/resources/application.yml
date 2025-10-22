@@ -41,3 +41,6 @@ chatflow:
       - /user/login
       - /user/register
       - /user/getVerfCode
+      - /user/token/validate
+      - /v3/api-docs/**
+      - /swagger-ui/**
