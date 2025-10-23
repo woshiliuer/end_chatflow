@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.example.chatflow.common.constants.JwtConstant;
+import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.constants.RedisConstants;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ErrorCode;
@@ -123,6 +124,7 @@ public class UserServiceImpl implements UserService {
         String password = bcryptUtil.hash(rawPassword);
         //创建新用户
         User user = RegisterDTO.RegisterDTOMapper.INSTANCE.toUser(dto);
+        user.setAvatarUrl(OssConstant.DEFAULT_AVATAR);
         user.setPassword(password);
         user.setCreateUserId(0L);
         user.setCreateBy("自行注册");

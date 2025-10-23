@@ -32,4 +32,10 @@ public class User extends BaseEntity<Long> {
     @TableField(value = "nickname")
     private String nickname;
 
+    /**
+     * 头像URL
+     */
+    @TableField(value = "avatar_url")
+    private String avatarUrl;
+
 }
