@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: local
   datasource:
     url: jdbc:mysql://localhost:3307/chatflow?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root

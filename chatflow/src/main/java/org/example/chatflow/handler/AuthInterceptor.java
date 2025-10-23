@@ -11,11 +11,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.example.chatflow.common.constants.JwtConstant;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.exception.BusinessException;
-import org.example.chatflow.config.SecurityProperties;
-import org.example.chatflow.utils.ThreadLocalUtil;
 import org.example.chatflow.utils.JwtUtil;
+import org.example.chatflow.utils.ThreadLocalUtil;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
@@ -28,16 +26,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     private final JwtUtil jwtUtil;
-    private final SecurityProperties securityProperties;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        if (isWhitelisted(request)) {
-            return true;
-        }
         String token = resolveToken(request);
         if (StringUtils.isBlank(token)) {
             log.debug("Skip request {}: missing Authorization header", request.getRequestURI());
@@ -84,18 +77,5 @@ public class AuthInterceptor implements HandlerInterceptor {
             return number.longValue();
         }
         return Long.parseLong(userIdClaim.toString());
-    }
-
-    private boolean isWhitelisted(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        if (securityProperties.getWhitelist() == null) {
-            return false;
-        }
-        for (String pattern : securityProperties.getWhitelist()) {
-            if (PATH_MATCHER.match(pattern, path)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

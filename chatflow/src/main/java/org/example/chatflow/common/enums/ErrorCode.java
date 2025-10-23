@@ -19,7 +19,8 @@ public enum ErrorCode {
     VERIFICATION_CODE_ERROR("1007","验证码错误" ),
     ADD_USER_FAIL("1008","新增用户失败"),
     PASSWORD_LENGTH_ERROR("1009","密码长度必须大于等于8或小于等于12"),
-    PASSWORD_MUST_NUM_ENG("1010","密码必须是数字或英文")
+    PASSWORD_MUST_NUM_ENG("1010","密码必须是数字或英文"),
+    USER_NOT_LOGIN("1011","用户未登录"),
     ;
 
     private final String code;

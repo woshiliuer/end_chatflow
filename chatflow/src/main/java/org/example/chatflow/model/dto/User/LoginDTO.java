@@ -3,7 +3,7 @@ package org.example.chatflow.model.dto.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import org.springframework.stereotype.Service;
+
 
 /**
  * @author by zzr

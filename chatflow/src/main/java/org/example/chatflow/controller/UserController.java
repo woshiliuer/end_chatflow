@@ -11,8 +11,10 @@ import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.User.LoginDTO;
 import org.example.chatflow.model.dto.User.RegisterDTO;
+import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.service.UserService;
 import org.example.chatflow.utils.JwtUtil;
+import org.example.chatflow.utils.ThreadLocalUtil;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -73,5 +75,11 @@ public class UserController {
         } catch (JwtException | IllegalArgumentException ex) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
+    }
+
+    @Operation(summary = "获取当前登录用户信息")
+    @GetMapping("/getUserInfo")
+    public CurlResponse<UserInfoVO>  getUserInfo() {
+        return userService.getUserInfo();
     }
 }

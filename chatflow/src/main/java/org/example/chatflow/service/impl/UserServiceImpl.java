@@ -15,6 +15,7 @@ import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.User.LoginDTO;
 import org.example.chatflow.model.dto.User.RegisterDTO;
 import org.example.chatflow.model.entity.User;
+import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.UserService;
 import org.example.chatflow.utils.*;
@@ -135,6 +136,27 @@ public class UserServiceImpl implements UserService {
         redisUtil.del(redisKey);
         return CurlResponse.success("注册成功");
     }
+
+    /**
+     * 获取用户信息
+     */
+    @Override
+    public CurlResponse<UserInfoVO> getUserInfo() {
+        Long userId = ThreadLocalUtil.getUserId();
+        VerifyUtil.isTrue(userId == null, ErrorCode.USER_NOT_LOGIN);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_EXISTS));
+
+        UserInfoVO userInfoVO = UserInfoVO.UserInfoVOMapper.INSTANCE.toVO(user);
+
+        userInfoVO.setAvatarFullUrl(OssConstant.buildFullUrl(OssConstant.DEFAULT_AVATAR));
+
+        return CurlResponse.success(userInfoVO);
+    }
+
+
+
 
     private void checkPassword(String rawPassword) {
         VerifyUtil.isTrue(rawPassword.length() < 8 || rawPassword.length() > 12, ErrorCode.PASSWORD_LENGTH_ERROR);
