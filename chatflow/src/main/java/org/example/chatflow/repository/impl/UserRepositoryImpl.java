@@ -5,7 +5,11 @@ import org.example.chatflow.model.entity.User;
 import org.example.chatflow.repository.UserRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 用户仓储实现，集中处理用户实体的数据库交互。
@@ -24,5 +28,12 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<UserMapper, User, Lon
         return lambdaQuery()
             .eq(User::getEmail, email)
             .exists();
+    }
+
+    @Override
+    public Map<Long, User> getUsersMapByIds(Set<Long> allFriendIds) {
+        List<User> userList = lambdaQuery().in(User::getId, allFriendIds).list();
+        Map<Long, User> userMap = userList.stream().collect(Collectors.toMap(User::getId, user -> user));
+        return Map.of();
     }
 }

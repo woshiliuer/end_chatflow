@@ -143,7 +143,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public CurlResponse<UserInfoVO> getUserInfo() {
         Long userId = ThreadLocalUtil.getUserId();
-        VerifyUtil.isTrue(userId == null, ErrorCode.USER_NOT_LOGIN);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_EXISTS));

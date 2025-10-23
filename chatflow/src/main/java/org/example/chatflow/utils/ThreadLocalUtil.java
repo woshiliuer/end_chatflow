@@ -1,5 +1,7 @@
 package org.example.chatflow.utils;
 
+import org.example.chatflow.common.enums.ErrorCode;
+
 /**
  * 保存当前线程用户信息的上下文工具类。
  */
@@ -15,7 +17,9 @@ public final class ThreadLocalUtil {
     }
 
     public static Long getUserId() {
-        return CURRENT_USER.get();
+        Long userId = CURRENT_USER.get();
+        VerifyUtil.isTrue(userId == null, ErrorCode.USER_NOT_LOGIN);
+        return userId;
     }
 
     public static void clear() {
