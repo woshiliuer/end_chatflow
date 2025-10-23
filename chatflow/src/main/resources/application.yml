@@ -44,3 +44,11 @@ chatflow:
       - /user/token/validate
       - /v3/api-docs/**
       - /swagger-ui/**
+
+
+sky:
+  alioss:
+    endpoint: oss-cn-guangzhou.aliyuncs.com
+    access-key-id: ${ALIBABA_ACCESS_KEY_ID:}
+    access-key-secret: ${ALIBABA_ACCESS_KEY_SECRET:}
+    bucket-name: chat-flow

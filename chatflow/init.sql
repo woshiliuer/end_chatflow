@@ -15,3 +15,6 @@ CREATE TABLE `user` (
 
 ALTER TABLE `user`
     ADD COLUMN `nickname` varchar(50) DEFAULT NULL COMMENT '昵称' AFTER `password`;
+
+ALTER TABLE `user`
+    ADD COLUMN `avatar_url` VARCHAR(255) DEFAULT NULL COMMENT '头像URL' AFTER `nickname`;
