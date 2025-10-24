@@ -1,8 +1,6 @@
 package org.example.chatflow.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import org.example.chatflow.common.entity.BaseEntity;
@@ -31,6 +29,8 @@ public class User extends BaseEntity<Long> {
      */
     @TableField(value = "nickname")
     private String nickname;
+
+
 
     /**
      * 头像URL

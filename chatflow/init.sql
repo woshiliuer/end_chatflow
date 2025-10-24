@@ -13,6 +13,8 @@ CREATE TABLE `user` (
     UNIQUE KEY `uk_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
+
+
 ALTER TABLE `user`
     ADD COLUMN `nickname` varchar(50) DEFAULT NULL COMMENT '昵称' AFTER `password`;
 
@@ -104,3 +106,9 @@ CREATE TABLE message (
      UNIQUE KEY uk_conversation_sequence (conversation_id, sequence)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '消息表';
 
+ALTER TABLE friend_request
+    MODIFY COLUMN `handled_at` BIGINT(20) DEFAULT NULL COMMENT '处理时间';
+
+
+ALTER TABLE `friend_request`
+    ADD COLUMN `apply_remark` VARCHAR(500) DEFAULT NULL COMMENT '申请备注' AFTER `apply_message`;

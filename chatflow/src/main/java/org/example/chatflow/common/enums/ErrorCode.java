@@ -21,6 +21,9 @@ public enum ErrorCode {
     PASSWORD_LENGTH_ERROR("1009","密码长度必须大于等于8或小于等于12"),
     PASSWORD_MUST_NUM_ENG("1010","密码必须是数字或英文"),
     USER_NOT_LOGIN("1011","用户未登录"),
+    FRIEND_REQUEST_ADD_FAIL("1012","好友申请失败"),
+    FRIEND_REQUEST_NOT_EXISTS("1013","好友申请不存在"),
+    AGREE_FRIEND_FAIL("1014","同意好友申请失败"),
     ;
 
     private final String code;

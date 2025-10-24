@@ -1,30 +1,47 @@
 package org.example.chatflow.handler;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.reflection.MetaObject;
+import org.example.chatflow.common.enums.ErrorCode;
+import org.example.chatflow.model.entity.User;
+import org.example.chatflow.repository.UserRepository;
+import org.example.chatflow.utils.ThreadLocalUtil;
+import org.example.chatflow.utils.VerifyUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author by zzr
  */
 @Component
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MyMetaObjectHandler implements MetaObjectHandler {
+
+    private final UserRepository userRepository;
 
     @Override
     public void insertFill(MetaObject metaObject) {
-        this.strictInsertFill(metaObject, "createTime", Long.class, System.currentTimeMillis());
+        this.strictInsertFill(metaObject, "createTime", Long.class, System.currentTimeMillis()/1000);
         this.strictInsertFill(metaObject, "createUserId", Long.class, getCurrentUserId());
+        this.strictInsertFill(metaObject, "creatBy", String.class, getCurrentUser().getEmail());
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
         this.strictUpdateFill(metaObject, "updateTime", Long.class, System.currentTimeMillis());
         this.strictUpdateFill(metaObject, "updateUserId", Long.class, getCurrentUserId());
+        this.strictInsertFill(metaObject, "updatetBy", String.class, getCurrentUser().getEmail());
     }
 
     private Long getCurrentUserId() {
-        // TODO 从登录上下文获取当前用户
-        return 1001L;
+        return ThreadLocalUtil.getUserId();
+    }
+
+    private User getCurrentUser() {
+        User user = userRepository.findById(getCurrentUserId()).orElse(null);
+        VerifyUtil.isTrue(user == null, ErrorCode.USER_NOT_EXISTS);
+        return user;
     }
 }
 

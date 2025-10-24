@@ -34,6 +34,12 @@ public class FriendRequest extends BaseEntity<Long> {
     private String applyMessage;
 
     /**
+     * 申请备注
+     */
+    @TableField("apply_remark")
+    private String applyRemark;
+
+    /**
      * 申请状态：0待处理 1已同意 2已拒绝
      */
     @TableField("request_status")
@@ -43,5 +49,5 @@ public class FriendRequest extends BaseEntity<Long> {
      * 处理时间
      */
     @TableField("handled_at")
-    private LocalDateTime handledAt;
+    private Long handledAt;
 }
