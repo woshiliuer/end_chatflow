@@ -48,6 +48,6 @@ public class FriendController {
     @Operation(summary = "拒绝好友申请",description = "参数传好友Id")
     @PostMapping("/disagreeFriendRequest")
     public CurlResponse<String> disagreeFriendRequest(@RequestBody @Validated Param<Long> param) {
-        return friendService.disagreeFriendRequest(param);
+        return friendService.disagreeFriendRequest(param.getParam());
     }
 }

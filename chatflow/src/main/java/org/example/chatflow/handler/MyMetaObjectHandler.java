@@ -17,31 +17,26 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MyMetaObjectHandler implements MetaObjectHandler {
-
-    private final UserRepository userRepository;
-
     @Override
     public void insertFill(MetaObject metaObject) {
         this.strictInsertFill(metaObject, "createTime", Long.class, System.currentTimeMillis()/1000);
         this.strictInsertFill(metaObject, "createUserId", Long.class, getCurrentUserId());
-        this.strictInsertFill(metaObject, "creatBy", String.class, getCurrentUser().getEmail());
+        this.strictInsertFill(metaObject, "createBy", String.class, getCurrentUserNickname());
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
         this.strictUpdateFill(metaObject, "updateTime", Long.class, System.currentTimeMillis());
         this.strictUpdateFill(metaObject, "updateUserId", Long.class, getCurrentUserId());
-        this.strictInsertFill(metaObject, "updatetBy", String.class, getCurrentUser().getEmail());
+        this.strictInsertFill(metaObject, "updateBy", String.class, getCurrentUserNickname());
     }
 
     private Long getCurrentUserId() {
         return ThreadLocalUtil.getUserId();
     }
 
-    private User getCurrentUser() {
-        User user = userRepository.findById(getCurrentUserId()).orElse(null);
-        VerifyUtil.isTrue(user == null, ErrorCode.USER_NOT_EXISTS);
-        return user;
+    private String getCurrentUserNickname() {
+        return ThreadLocalUtil.getUserNickname();
     }
 }
 

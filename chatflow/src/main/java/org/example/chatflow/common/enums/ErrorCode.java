@@ -24,6 +24,7 @@ public enum ErrorCode {
     FRIEND_REQUEST_ADD_FAIL("1012","好友申请失败"),
     FRIEND_REQUEST_NOT_EXISTS("1013","好友申请不存在"),
     AGREE_FRIEND_FAIL("1014","同意好友申请失败"),
+    DISAGREE_FRIEND_FAIL("1015","拒绝好友申请失败")
     ;
 
     private final String code;

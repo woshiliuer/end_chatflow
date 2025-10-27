@@ -45,7 +45,16 @@ public class AuthInterceptor implements HandlerInterceptor {
             }
             long userId = parseUserId(userIdClaim);
             ThreadLocalUtil.setUserId(userId); // 保存当前登录用户，便于业务层使用
+
+            Object userNicknameClaim = claims.get(JwtConstant.NICKNAME);
+            if (userNicknameClaim == null) {
+                log.debug("Token payload missing nickname");
+                throw new BusinessException(ErrorCode.UNAUTHORIZED);
+            }
+            String nickName = parseNickName(userNicknameClaim);
+            ThreadLocalUtil.setUserNickname(nickName);
             request.setAttribute(JwtConstant.USER_ID, userId); // 让控制器也能访问
+            request.setAttribute(JwtConstant.NICKNAME, nickName);
             return true;
         } catch (ExpiredJwtException ex) {
             log.debug("Token expired: {}", ex.getMessage());
@@ -76,5 +85,12 @@ public class AuthInterceptor implements HandlerInterceptor {
             return number.longValue();
         }
         return Long.parseLong(userIdClaim.toString());
+    }
+
+    private String parseNickName(Object userNicknameClaim) {
+        if (userNicknameClaim instanceof Number number) {
+            return "";
+        }
+        return userNicknameClaim.toString();
     }
 }

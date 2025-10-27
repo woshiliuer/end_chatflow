@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
-import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.enums.OnlineStatus;
 import org.example.chatflow.common.enums.RequestStatus;
@@ -79,7 +78,7 @@ public class FriendServiceImpl implements FriendService {
         Long userId = ThreadLocalUtil.getUserId();
         User friend = checkFriendIsExists(dto.getReceiverId());
 
-        FriendRequest friendRequest = bulidRequest(userId,dto,friend);
+        FriendRequest friendRequest = bulidRequest(userId,friend,dto);
 
         VerifyUtil.ensureOperationSucceeded(
                 friendRequestRepository.save(friendRequest),
@@ -118,16 +117,20 @@ public class FriendServiceImpl implements FriendService {
         request.setRequestStatus(RequestStatus.APPROVED.getCode());
         request.setHandledAt(System.currentTimeMillis()/1000);
         VerifyUtil.ensureOperationSucceeded(friendRequestRepository.update(request),ErrorCode.AGREE_FRIEND_FAIL);
-        return CurlResponse.success("已成功添加好友");
+        return CurlResponse.success("成功添加好友");
     }
 
     /**
      * 拒绝好友申请
      */
     @Override
-    public CurlResponse<String> disagreeFriendRequest(Param<Long> param) {
-
-        return null;
+    public CurlResponse<String> disagreeFriendRequest(Long param) {
+        Long userId = ThreadLocalUtil.getUserId();
+        FriendRequest request = checkFriendRequestExists(userId,param);
+        request.setRequestStatus(RequestStatus.REJECTED.getCode());
+        request.setHandledAt(System.currentTimeMillis()/1000);
+        VerifyUtil.ensureOperationSucceeded(friendRequestRepository.update(request),ErrorCode.AGREE_FRIEND_FAIL);
+        return CurlResponse.success("成功拒绝好友申请");
     }
 
     private FriendRequest checkFriendRequestExists(Long userId, Long friendId) {
@@ -146,7 +149,7 @@ public class FriendServiceImpl implements FriendService {
 
 
 
-    private FriendRequest bulidRequest(Long userId, AddRequestDTO dto, User friend) {
+    private FriendRequest bulidRequest(Long userId, User friend,AddRequestDTO dto) {
         FriendRequest friendRequest = AddRequestDTO.AddRequestDTOMapper.INSTANCE.toRequest(dto);
         friendRequest.setRequesterId(userId);
         //备注如果为空就用昵称

@@ -64,6 +64,7 @@ public class UserServiceImpl implements UserService {
         try {
             Map<String,Object> claims =  new HashMap<>();
             claims.put(JwtConstant.USER_ID, user.getId());
+            claims.put(JwtConstant.NICKNAME, user.getNickname());
             String token = jwtUtil.createToken(claims);
             return CurlResponse.success(token);
         }catch (Exception e){
