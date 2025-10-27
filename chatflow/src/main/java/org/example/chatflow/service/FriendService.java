@@ -3,6 +3,7 @@ package org.example.chatflow.service;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.model.dto.friend.AddRequestDTO;
 import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
+import org.example.chatflow.model.vo.FriendRequestListTotalVO;
 import org.example.chatflow.model.vo.GetFriendListVO;
 
 import java.util.List;
@@ -18,4 +19,6 @@ public interface FriendService {
     CurlResponse<String> agreeFriendRequest(AgreeRequestDTO dto);
 
     CurlResponse<String> disagreeFriendRequest(Long param);
+
+    CurlResponse<FriendRequestListTotalVO> friendRequestList();
 }

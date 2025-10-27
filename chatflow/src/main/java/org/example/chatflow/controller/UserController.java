@@ -11,20 +11,15 @@ import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.User.LoginDTO;
 import org.example.chatflow.model.dto.User.RegisterDTO;
+import org.example.chatflow.model.vo.UserByEmailVO;
 import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.service.UserService;
 import org.example.chatflow.utils.JwtUtil;
-import org.example.chatflow.utils.ThreadLocalUtil;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * User-related endpoints.
@@ -81,5 +76,11 @@ public class UserController {
     @GetMapping("/getUserInfo")
     public CurlResponse<UserInfoVO>  getUserInfo() {
         return userService.getUserInfo();
+    }
+
+    @Operation(summary = "通过邮箱查询用户",description = "参数传邮箱")
+    @PostMapping("/getUserInfoByEmail")
+    public CurlResponse<UserByEmailVO>  getUserInfoByEmail(@RequestBody @Validated Param<String> param) {
+        return userService.getUserInfoByEmail(param.getParam());
     }
 }

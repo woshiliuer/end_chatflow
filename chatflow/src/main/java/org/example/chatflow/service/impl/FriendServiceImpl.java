@@ -5,14 +5,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
+import org.example.chatflow.common.enums.ApplyDirection;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.enums.OnlineStatus;
 import org.example.chatflow.common.enums.RequestStatus;
+import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.friend.AddRequestDTO;
 import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
 import org.example.chatflow.model.entity.FriendRelation;
 import org.example.chatflow.model.entity.FriendRequest;
 import org.example.chatflow.model.entity.User;
+import org.example.chatflow.model.vo.FriendRequestListTotalVO;
+import org.example.chatflow.model.vo.FriendRequestListVO;
 import org.example.chatflow.model.vo.GetFriendListVO;
 import org.example.chatflow.repository.FriendRelationRepository;
 import org.example.chatflow.repository.FriendRequestRepository;
@@ -78,6 +82,12 @@ public class FriendServiceImpl implements FriendService {
         Long userId = ThreadLocalUtil.getUserId();
         User friend = checkFriendIsExists(dto.getReceiverId());
 
+        if (userId.equals(friend.getId())) {
+            throw new BusinessException(ErrorCode.REQUESTID_EQUALS_RECEIVERID);
+        }
+        checkFriendRequestIsExists(userId,friend.getId());
+
+        
         FriendRequest friendRequest = bulidRequest(userId,friend,dto);
 
         VerifyUtil.ensureOperationSucceeded(
@@ -85,6 +95,65 @@ public class FriendServiceImpl implements FriendService {
                 ErrorCode.FRIEND_REQUEST_ADD_FAIL
         );
         return CurlResponse.success("好友申请成功");
+    }
+
+    /**
+     * 申请添加好友列表
+     */
+    @Override
+    public CurlResponse<FriendRequestListTotalVO> friendRequestList() {
+        Long userId = ThreadLocalUtil.getUserId();
+        List<FriendRequest> outGoIn = friendRequestRepository.findByRequesterId(userId);
+        List<FriendRequest> inComIn = friendRequestRepository.findByReceiverId(userId);
+
+        // 收集涉及的用户ID
+        Set<Long> userIds = outGoIn.stream().map(FriendRequest::getReceiverId).collect(Collectors.toSet());
+        userIds.addAll(inComIn.stream().map(FriendRequest::getRequesterId).collect(Collectors.toSet()));
+        Map<Long, User> friendMap = userRepository.getUsersMapByIds(userIds);
+
+        List<FriendRequestListVO> voList = new ArrayList<>(outGoIn.size() + inComIn.size());
+
+        int pendingCount = 0;
+        // 我发出的申请
+        for (FriendRequest friendRequest : outGoIn) {
+            User receiver = friendMap.get(friendRequest.getReceiverId());
+            FriendRequestListVO vo = buildReqiestListVO(receiver, friendRequest, ApplyDirection.OUTGOING);
+            if (vo != null) {
+                if (vo.getRequestStatus().equals(RequestStatus.PENDING))
+                    pendingCount++;
+                voList.add(vo);
+            }
+        }
+
+        // 我收到的申请
+        for (FriendRequest friendRequest : inComIn) {
+            User requester = friendMap.get(friendRequest.getRequesterId());
+            FriendRequestListVO vo = buildReqiestListVO(requester, friendRequest, ApplyDirection.INCOMING);
+            if (vo != null) {
+                if (vo.getRequestStatus().equals(RequestStatus.PENDING))
+                    pendingCount++;
+                voList.add(vo);
+            }
+        }
+        FriendRequestListTotalVO vo = new FriendRequestListTotalVO();
+        vo.setTotal(inComIn.size() +  outGoIn.size());
+        vo.setFriendRequestList(voList);
+        return CurlResponse.success(vo);
+    }
+
+    private FriendRequestListVO buildReqiestListVO(User user, FriendRequest friendRequest, ApplyDirection direction) {
+        if (user == null || friendRequest == null) {
+            return null;
+        }
+        FriendRequestListVO vo = new FriendRequestListVO();
+        vo.setUserId(user.getId());
+        vo.setNickname(user.getNickname());
+        vo.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
+        vo.setApplyMessage(friendRequest.getApplyMessage());
+        vo.setCreateTime(friendRequest.getCreateTime());
+        vo.setApplyDirection(direction.getCode());
+        vo.setRequestStatus(friendRequest.getRequestStatus());
+        return vo;
     }
 
 
@@ -96,8 +165,8 @@ public class FriendServiceImpl implements FriendService {
     public CurlResponse<String> agreeFriendRequest(AgreeRequestDTO dto) {
         Long userId = ThreadLocalUtil.getUserId();
         checkFriendIsExists(dto.getFriendId());
-        checkFriendRequestExists(userId,dto.getFriendId());
-        FriendRequest request = checkFriendRequestExists(userId,dto.getFriendId());
+        checkFriendRequestNotExists(userId,dto.getFriendId());
+        FriendRequest request = checkFriendRequestNotExists(userId,dto.getFriendId());
 
         FriendRelation friendRelation = new FriendRelation();
         friendRelation.setUserId(userId);
@@ -126,17 +195,24 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public CurlResponse<String> disagreeFriendRequest(Long param) {
         Long userId = ThreadLocalUtil.getUserId();
-        FriendRequest request = checkFriendRequestExists(userId,param);
+        FriendRequest request = checkFriendRequestNotExists(userId,param);
         request.setRequestStatus(RequestStatus.REJECTED.getCode());
         request.setHandledAt(System.currentTimeMillis()/1000);
         VerifyUtil.ensureOperationSucceeded(friendRequestRepository.update(request),ErrorCode.AGREE_FRIEND_FAIL);
         return CurlResponse.success("成功拒绝好友申请");
     }
 
-    private FriendRequest checkFriendRequestExists(Long userId, Long friendId) {
+    private FriendRequest checkFriendRequestNotExists(Long userId, Long friendId) {
         FriendRequest friendRequest = friendRequestRepository.findByRequesterAndReceiverId(friendId,
                 userId);
         VerifyUtil.isTrue(friendRequest == null,ErrorCode.FRIEND_REQUEST_NOT_EXISTS);
+        return friendRequest;
+    }
+
+    private FriendRequest checkFriendRequestIsExists(Long userId, Long friendId) {
+        FriendRequest friendRequest = friendRequestRepository.findByRequesterAndReceiverId(friendId,
+                userId);
+        VerifyUtil.isTrue(friendRequest != null,ErrorCode.FRIEND_REQUEST_EXISTS);
         return friendRequest;
     }
 
@@ -154,7 +230,7 @@ public class FriendServiceImpl implements FriendService {
         friendRequest.setRequesterId(userId);
         //备注如果为空就用昵称
         String remark = dto.getRemark();
-        friendRequest.setApplyRemark(StringUtils.isEmpty(remark) ? remark : friend.getNickname());
+        friendRequest.setApplyRemark(!StringUtils.isEmpty(remark) ? remark : friend.getNickname());
         friendRequest.setRequestStatus(RequestStatus.PENDING.getCode());
         return friendRequest;
     }

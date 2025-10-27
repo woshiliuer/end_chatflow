@@ -15,6 +15,7 @@ import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.User.LoginDTO;
 import org.example.chatflow.model.dto.User.RegisterDTO;
 import org.example.chatflow.model.entity.User;
+import org.example.chatflow.model.vo.UserByEmailVO;
 import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.UserService;
@@ -155,8 +156,17 @@ public class UserServiceImpl implements UserService {
         return CurlResponse.success(userInfoVO);
     }
 
-
-
+    /**
+     * 根据邮箱获取用户信息
+     */
+    @Override
+    public CurlResponse<UserByEmailVO> getUserInfoByEmail(String param) {
+        User user = userRepository.findByEmail(param);
+        VerifyUtil.isTrue(user == null, ErrorCode.USER_NOT_EXISTS);
+        UserByEmailVO  userByEmailVO = UserByEmailVO.UserByEmailVOMapper.INSTANCE.toVO(user);
+        userByEmailVO.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
+        return CurlResponse.success(userByEmailVO);
+    }
 
     private void checkPassword(String rawPassword) {
         VerifyUtil.isTrue(rawPassword.length() < 8 || rawPassword.length() > 12, ErrorCode.PASSWORD_LENGTH_ERROR);

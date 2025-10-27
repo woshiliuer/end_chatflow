@@ -112,3 +112,4 @@ ALTER TABLE friend_request
 
 ALTER TABLE `friend_request`
     ADD COLUMN `apply_remark` VARCHAR(500) DEFAULT NULL COMMENT '申请备注' AFTER `apply_message`;
+

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,8 +31,14 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<UserMapper, User, Lon
 
     @Override
     public Map<Long, User> getUsersMapByIds(Set<Long> allFriendIds) {
+        if (allFriendIds == null || allFriendIds.isEmpty()) {
+            return Map.of();
+        }
         List<User> userList = lambdaQuery().in(User::getId, allFriendIds).list();
-        Map<Long, User> userMap = userList.stream().collect(Collectors.toMap(User::getId, user -> user));
-        return Map.of();
+        if (userList == null || userList.isEmpty()) {
+            return Map.of();
+        }
+        return userList.stream()
+            .collect(Collectors.toMap(User::getId, user -> user, (existing, replacement) -> existing));
     }
 }

@@ -6,14 +6,13 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.model.dto.friend.AddRequestDTO;
 import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
+import org.example.chatflow.model.vo.FriendRequestListTotalVO;
+import org.example.chatflow.model.vo.FriendRequestListVO;
 import org.example.chatflow.model.vo.GetFriendListVO;
 import org.example.chatflow.service.FriendService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -37,6 +36,12 @@ public class FriendController {
     @PostMapping("/addFriendRequest")
     public CurlResponse<String> addFriend(@RequestBody @Validated AddRequestDTO dto) {
         return friendService.addFriendRequest(dto);
+    }
+
+    @Operation(summary = "好友申请列表")
+    @GetMapping("/friendRequestList")
+    public CurlResponse<FriendRequestListTotalVO> friendRequestList(){
+        return friendService.friendRequestList();
     }
 
     @Operation(summary = "同意好友申请",description = "参数传好友Id")
