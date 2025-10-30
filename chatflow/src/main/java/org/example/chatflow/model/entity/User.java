@@ -30,12 +30,21 @@ public class User extends BaseEntity<Long> {
     @TableField(value = "nickname")
     private String nickname;
 
-
-
     /**
      * 头像URL
      */
     @TableField(value = "avatar_url")
     private String avatarUrl;
 
+    /**
+     * 个性签名
+     */
+    @TableField(value = "signature")
+    private String signature;
+
+    /**
+     * 性别
+     */
+    @TableField(value = "gender")
+    private Integer gender;
 }

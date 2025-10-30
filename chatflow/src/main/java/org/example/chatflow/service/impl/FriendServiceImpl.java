@@ -119,7 +119,7 @@ public class FriendServiceImpl implements FriendService {
             User receiver = friendMap.get(friendRequest.getReceiverId());
             FriendRequestListVO vo = buildReqiestListVO(receiver, friendRequest, ApplyDirection.OUTGOING);
             if (vo != null) {
-                if (vo.getRequestStatus().equals(RequestStatus.PENDING))
+                if (vo.getRequestStatus().equals(RequestStatus.PENDING.getCode()))
                     pendingCount++;
                 voList.add(vo);
             }
@@ -130,7 +130,7 @@ public class FriendServiceImpl implements FriendService {
             User requester = friendMap.get(friendRequest.getRequesterId());
             FriendRequestListVO vo = buildReqiestListVO(requester, friendRequest, ApplyDirection.INCOMING);
             if (vo != null) {
-                if (vo.getRequestStatus().equals(RequestStatus.PENDING))
+                if (vo.getRequestStatus().equals(RequestStatus.PENDING.getCode()))
                     pendingCount++;
                 voList.add(vo);
             }
@@ -138,6 +138,7 @@ public class FriendServiceImpl implements FriendService {
         FriendRequestListTotalVO vo = new FriendRequestListTotalVO();
         vo.setTotal(inComIn.size() +  outGoIn.size());
         vo.setFriendRequestList(voList);
+        vo.setPendingCount(pendingCount);
         return CurlResponse.success(vo);
     }
 
@@ -212,7 +213,9 @@ public class FriendServiceImpl implements FriendService {
     private FriendRequest checkFriendRequestIsExists(Long userId, Long friendId) {
         FriendRequest friendRequest = friendRequestRepository.findByRequesterAndReceiverId(friendId,
                 userId);
-        VerifyUtil.isTrue(friendRequest != null,ErrorCode.FRIEND_REQUEST_EXISTS);
+        VerifyUtil.isTrue(friendRequest != null &&
+                        !friendRequest.getRequestStatus().equals(RequestStatus.REJECTED.getCode()),
+                ErrorCode.FRIEND_REQUEST_EXISTS);
         return friendRequest;
     }
 

@@ -22,6 +22,12 @@ public class UserInfoVO {
     @Schema(description = "头像URL")
     private String avatarFullUrl;
 
+    @Schema(description = "性别")
+    private String genderDesc;
+
+    @Schema(description = "个性签名")
+    private String signature;
+
     @Mapper
     public interface UserInfoVOMapper{
         UserInfoVO.UserInfoVOMapper INSTANCE = org.mapstruct.factory.Mappers.getMapper(UserInfoVO.UserInfoVOMapper.class);

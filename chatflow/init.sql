@@ -21,6 +21,10 @@ ALTER TABLE `user`
 ALTER TABLE `user`
     ADD COLUMN `avatar_url` VARCHAR(255) DEFAULT NULL COMMENT '头像URL' AFTER `nickname`;
 
+ALTER TABLE `user`
+    ADD COLUMN `signature` VARCHAR(255) DEFAULT NULL COMMENT '个性签名' AFTER `password`,
+ADD COLUMN `gender` TINYINT(1) DEFAULT NULL COMMENT '性别（0：未知，1：男，2：女）' AFTER `signature`;
+
 
 CREATE TABLE friend_relation (
      `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',

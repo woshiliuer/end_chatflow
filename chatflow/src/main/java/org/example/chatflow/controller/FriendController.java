@@ -26,7 +26,7 @@ public class FriendController {
 
     private final FriendService friendService;
 
-    @Operation(summary = "获取用户对应的好友")
+    @Operation(summary = "好友列表")
     @PostMapping("/getFriends")
     public CurlResponse<List<GetFriendListVO>> getFriends() {
         return friendService.getFriends();
@@ -55,4 +55,6 @@ public class FriendController {
     public CurlResponse<String> disagreeFriendRequest(@RequestBody @Validated Param<Long> param) {
         return friendService.disagreeFriendRequest(param.getParam());
     }
+
+
 }

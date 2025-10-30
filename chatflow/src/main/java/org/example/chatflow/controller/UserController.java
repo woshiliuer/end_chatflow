@@ -83,4 +83,10 @@ public class UserController {
     public CurlResponse<UserByEmailVO>  getUserInfoByEmail(@RequestBody @Validated Param<String> param) {
         return userService.getUserInfoByEmail(param.getParam());
     }
+
+    @Operation(summary = "上传头像")
+    @PostMapping("/uploadAvatar")
+    public CurlResponse<String> uploadAvatar(@RequestBody @Validated Param<String> param) {
+        return null;
+    }
 }

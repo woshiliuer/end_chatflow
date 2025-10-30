@@ -11,6 +11,7 @@ import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.constants.RedisConstants;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ErrorCode;
+import org.example.chatflow.common.enums.Gender;
 import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.User.LoginDTO;
 import org.example.chatflow.model.dto.User.RegisterDTO;
@@ -129,9 +130,10 @@ public class UserServiceImpl implements UserService {
         User user = RegisterDTO.RegisterDTOMapper.INSTANCE.toUser(dto);
         user.setAvatarUrl(OssConstant.DEFAULT_AVATAR);
         user.setPassword(password);
-        user.setCreateUserId(0L);
-        user.setCreateBy("自行注册");
-        user.setCreateTime(System.currentTimeMillis()/1000);
+        //性别默认男
+        user.setGender(Gender.MALE.getCode());
+        //个性签名默认空
+        user.setSignature("");
         boolean result = userRepository.save(user);
         VerifyUtil.ensureOperationSucceeded(result, ErrorCode.ADD_USER_FAIL);
         //删除验证码
@@ -150,7 +152,9 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_EXISTS));
 
         UserInfoVO userInfoVO = UserInfoVO.UserInfoVOMapper.INSTANCE.toVO(user);
-
+        Gender gender = Gender.fromCode(user.getGender());
+        VerifyUtil.isTrue(gender == null,ErrorCode.SEX_ERROR);
+        userInfoVO.setGenderDesc(gender.getDesc());
         userInfoVO.setAvatarFullUrl(OssConstant.buildFullUrl(OssConstant.DEFAULT_AVATAR));
 
         return CurlResponse.success(userInfoVO);

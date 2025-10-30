@@ -26,7 +26,8 @@ public enum ErrorCode {
     AGREE_FRIEND_FAIL("1014","同意好友申请失败"),
     DISAGREE_FRIEND_FAIL("1015","拒绝好友申请失败"),
     FRIEND_REQUEST_EXISTS("1016","不可重复申请添加好友"),
-    REQUESTID_EQUALS_RECEIVERID("1017","不能申请添加自己为好友")
+    REQUESTID_EQUALS_RECEIVERID("1017","不能申请添加自己为好友"),
+    SEX_ERROR("1018","性别错误")
     ;
 
     private final String code;
