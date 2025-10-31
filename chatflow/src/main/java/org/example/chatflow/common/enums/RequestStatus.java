@@ -1,8 +1,11 @@
 package org.example.chatflow.common.enums;
 
+import lombok.Getter;
+
 /**
  * @author by zzr
  */
+@Getter
 public enum RequestStatus {
 
     PENDING(0, "待处理"),
@@ -15,13 +18,5 @@ public enum RequestStatus {
     RequestStatus(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
-    }
-
-    public Integer getCode() {
-        return code;
-    }
-
-    public String getDesc() {
-        return desc;
     }
 }

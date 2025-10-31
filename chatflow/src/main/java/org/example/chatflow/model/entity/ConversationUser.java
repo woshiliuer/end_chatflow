@@ -20,8 +20,8 @@ public class ConversationUser extends BaseEntity<Long> {
     /**
      * 参与用户ID
      */
-    @TableField("user_id")
-    private Long userId;
+    @TableField("member_id")
+    private Long memberId;
 
     /**
      * 角色：1普通成员 2管理员 3群主

@@ -13,6 +13,9 @@ import org.mapstruct.Mapper;
 @Data
 @Schema(description = "用户信息响应")
 public class UserInfoVO {
+    @Schema(description = "用户id")
+    private Long id;
+
     @Schema(description = "用户昵称")
     private String nickname;
 

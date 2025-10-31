@@ -18,6 +18,13 @@ public class Conversation extends BaseEntity<Long> {
     private Integer conversationType;
 
     /**
+     * 群聊Id
+     */
+
+    @TableField("group_id")
+    private Long groupId;
+
+    /**
      * 最新消息ID
      */
     @TableField("last_message_id")
@@ -28,10 +35,4 @@ public class Conversation extends BaseEntity<Long> {
      */
     @TableField("last_message_time")
     private Long lastMessageTime;
-
-    /**
-     * 状态：1正常 0禁用
-     */
-    @TableField("status")
-    private Integer status;
 }

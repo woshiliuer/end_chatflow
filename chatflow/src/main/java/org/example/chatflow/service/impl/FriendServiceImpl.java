@@ -15,6 +15,7 @@ import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
 import org.example.chatflow.model.entity.FriendRelation;
 import org.example.chatflow.model.entity.FriendRequest;
 import org.example.chatflow.model.entity.User;
+import org.example.chatflow.model.vo.FriendDetailVO;
 import org.example.chatflow.model.vo.FriendRequestListTotalVO;
 import org.example.chatflow.model.vo.FriendRequestListVO;
 import org.example.chatflow.model.vo.GetFriendListVO;
@@ -22,6 +23,7 @@ import org.example.chatflow.repository.FriendRelationRepository;
 import org.example.chatflow.repository.FriendRequestRepository;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.FriendService;
+import org.example.chatflow.service.support.CurrentUserAccessor;
 import org.example.chatflow.utils.ThreadLocalUtil;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,9 @@ public class FriendServiceImpl implements FriendService {
     private final UserRepository userRepository;
 
     private final FriendRequestRepository friendRequestRepository;
+
+    private final CurrentUserAccessor currentUserAccessor;
+
     /**
      * 获取好友列表
      */
@@ -63,6 +68,7 @@ public class FriendServiceImpl implements FriendService {
         for (FriendRelation friendRelation : ownFriends) {
             GetFriendListVO getFriendListVO = new  GetFriendListVO();
             User user = friendMap.get(friendRelation.getFriendId());
+            getFriendListVO.setId(user.getId());
             getFriendListVO.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
             getFriendListVO.setRemark(StringUtils.isEmpty(friendRelation.getRemark()) ?
                     friendRelation.getRemark() :
@@ -87,7 +93,6 @@ public class FriendServiceImpl implements FriendService {
         }
         checkFriendRequestIsExists(userId,friend.getId());
 
-        
         FriendRequest friendRequest = bulidRequest(userId,friend,dto);
 
         VerifyUtil.ensureOperationSucceeded(
@@ -95,6 +100,22 @@ public class FriendServiceImpl implements FriendService {
                 ErrorCode.FRIEND_REQUEST_ADD_FAIL
         );
         return CurlResponse.success("好友申请成功");
+    }
+
+    /**
+     * 删除好友
+     */
+    @Override
+    public CurlResponse<String> deleteFriend(Long param) {
+        User user = checkUserIsExists();
+        User friend = checkFriendIsExists(param);
+        //查询好友关系
+        FriendRelation userToFriend = friendRelationRepository
+                .findByUserAndFriendId(user.getId(), friend.getId());
+        VerifyUtil.isTrue(userToFriend == null,ErrorCode.FRIEND_RELATION_NOT_EXISTS);
+        //删除好友关系
+        VerifyUtil.ensureOperationSucceeded(friendRelationRepository.deleteById(userToFriend.getId()),ErrorCode.DELETE_FRIEND_FAIL);
+        return CurlResponse.success("删除成功");
     }
 
     /**
@@ -124,6 +145,8 @@ public class FriendServiceImpl implements FriendService {
                 voList.add(vo);
             }
         }
+
+
 
         // 我收到的申请
         for (FriendRequest friendRequest : inComIn) {
@@ -169,18 +192,26 @@ public class FriendServiceImpl implements FriendService {
         checkFriendRequestNotExists(userId,dto.getFriendId());
         FriendRequest request = checkFriendRequestNotExists(userId,dto.getFriendId());
 
-        FriendRelation friendRelation = new FriendRelation();
-        friendRelation.setUserId(userId);
-        friendRelation.setFriendId(dto.getFriendId());
-        friendRelation.setRemark(dto.getRemark());
+        FriendRelation userToFriend = friendRelationRepository.findByUserAndFriendId(userId,dto.getFriendId());
+        FriendRelation friendToUser = friendRelationRepository.findByUserAndFriendId(dto.getFriendId(),userId);
 
-        FriendRelation friendRelation1 = new FriendRelation();
-        friendRelation1.setFriendId(userId);
-        friendRelation1.setUserId(dto.getFriendId());
-        friendRelation1.setRemark(request.getApplyRemark());
+        FriendRelation newUserToFriend = new FriendRelation();
+        newUserToFriend.setUserId(userId);
+        newUserToFriend.setFriendId(dto.getFriendId());
+        newUserToFriend.setRemark(dto.getRemark());
+
+        FriendRelation newFriendToUser = new FriendRelation();
+        newFriendToUser.setFriendId(userId);
+        newFriendToUser.setUserId(dto.getFriendId());
+        newFriendToUser.setRemark(request.getApplyRemark());
         List<FriendRelation> relations = new  ArrayList<>();
-        relations.add(friendRelation);
-        relations.add(friendRelation1);
+
+        if (userToFriend == null) {
+            relations.add(newUserToFriend);
+        }
+        if (friendToUser == null) {
+            relations.add(newFriendToUser);
+        }
         //添加好友关系
         VerifyUtil.ensureOperationSucceeded(friendRelationRepository.saveBatch(relations),ErrorCode.AGREE_FRIEND_FAIL);
         //修改申请状态、时间
@@ -201,6 +232,22 @@ public class FriendServiceImpl implements FriendService {
         request.setHandledAt(System.currentTimeMillis()/1000);
         VerifyUtil.ensureOperationSucceeded(friendRequestRepository.update(request),ErrorCode.AGREE_FRIEND_FAIL);
         return CurlResponse.success("成功拒绝好友申请");
+    }
+
+    /**
+     * 好友详情
+     */
+    @Override
+    public CurlResponse<FriendDetailVO> friendDetail(Long param) {
+        User user = currentUserAccessor.getCurrentUser();
+        User friend  = userRepository.findById(param).
+                orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_EXISTS));
+        FriendDetailVO friendDetailVO = FriendDetailVO.FriendDetailVOMapper.INSTANCE.toVO(friend);
+        friendDetailVO.setAvatarFullUrl(OssConstant.buildFullUrl(friend.getAvatarUrl()));
+        FriendRelation relation = friendRelationRepository.findByUserAndFriendId(user.getId(),friend.getId());
+        VerifyUtil.isTrue(relation == null,ErrorCode.FRIEND_RELATION_NOT_EXISTS);
+        friendDetailVO.setRemark(relation.getRemark());
+        return CurlResponse.success(friendDetailVO);
     }
 
     private FriendRequest checkFriendRequestNotExists(Long userId, Long friendId) {
@@ -238,5 +285,7 @@ public class FriendServiceImpl implements FriendService {
         return friendRequest;
     }
 
-
+    private User checkUserIsExists(){
+        return currentUserAccessor.getCurrentUser();
+    }
 }

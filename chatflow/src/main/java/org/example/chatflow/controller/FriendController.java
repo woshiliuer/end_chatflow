@@ -6,6 +6,7 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.model.dto.friend.AddRequestDTO;
 import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
+import org.example.chatflow.model.vo.FriendDetailVO;
 import org.example.chatflow.model.vo.FriendRequestListTotalVO;
 import org.example.chatflow.model.vo.FriendRequestListVO;
 import org.example.chatflow.model.vo.GetFriendListVO;
@@ -56,5 +57,15 @@ public class FriendController {
         return friendService.disagreeFriendRequest(param.getParam());
     }
 
+    @Operation(summary = "删除好友",description = "参数传好友Id")
+    @PostMapping("/deleteFriend")
+    public CurlResponse<String> deleteFriend(@RequestBody @Validated Param<Long> param) {
+        return friendService.deleteFriend(param.getParam());
+    }
 
+    @Operation(summary = "好友详情",description = "参数传好友Id")
+    @PostMapping("/friendDetail")
+    public CurlResponse<FriendDetailVO> friendDetail(@RequestBody @Validated Param<Long> param) {
+        return friendService.friendDetail(param.getParam());
+    }
 }

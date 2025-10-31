@@ -24,4 +24,16 @@ public class FriendRelationRepositoryImpl extends BaseRepositoryImpl<FriendRelat
     public List<FriendRelation> getFriendRelationByUserId(Long userId) {
         return lambdaQuery().eq(FriendRelation::getUserId, userId).list();
     }
+
+    @Override
+    public FriendRelation findByUserAndFriendId(Long userId, Long friendId) {
+        return lambdaQuery().eq(FriendRelation::getUserId, userId).
+                eq(FriendRelation::getFriendId,friendId).one();
+    }
+
+    @Override
+    public int countFriendRelationByUserIdAndFriends(Long userId, List<Long> friendIds) {
+        return lambdaQuery().eq(FriendRelation::getUserId,userId).
+                in(FriendRelation::getFriendId,friendIds).list().size();
+    }
 }

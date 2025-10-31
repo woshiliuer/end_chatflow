@@ -10,6 +10,9 @@ import lombok.Data;
 @Data
 @Schema(description = "找回密码")
 public class RecoverPasswordDTO {
+    @Schema(description = "邮箱")
+    private String email;
+
     @Schema(description = "验证码")
     @NotBlank(message = "验证码不能为空")
     private String verfCode;

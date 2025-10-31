@@ -20,6 +20,7 @@ import org.example.chatflow.model.vo.UserByEmailVO;
 import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.UserService;
+import org.example.chatflow.service.support.CurrentUserAccessor;
 import org.example.chatflow.service.verifycode.VerifyCodeStrategyFactory;
 import org.example.chatflow.service.verifycode.strategy.VerifyCodeStrategy;
 import org.example.chatflow.utils.*;
@@ -47,6 +48,7 @@ public class UserServiceImpl implements UserService {
     private final RedisUtil redisUtil;
     private final AliOssUtil aliOssUtil;
     private final VerifyCodeStrategyFactory verifyCodeStrategyFactory;
+    private final CurrentUserAccessor currentUserAccessor;
 
     /**
      * 登录
@@ -201,7 +203,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public CurlResponse<String> recoverPassword(RecoverPasswordDTO dto) {
-        User user = checkUserIsExists();
+        User user = checkUserIsExists(dto.getEmail());
         //检查验证码是否正确
         String redisKey = RedisKeyUtil.buildKey(RedisConstants.RECOVER_VERIFY_CODE_KEY_PREFIX, user.getEmail());
         String verfCode = Optional.ofNullable((String) redisUtil.get(redisKey)).orElse("");
@@ -220,8 +222,11 @@ public class UserServiceImpl implements UserService {
     }
 
     private User checkUserIsExists(){
-        Long userId = ThreadLocalUtil.getUserId();
-        User user = userRepository.findById(userId).get();
+        return currentUserAccessor.getCurrentUser();
+    }
+
+    private User checkUserIsExists(String email){
+        User user = userRepository.findByEmail(email);
         VerifyUtil.isTrue(user == null, ErrorCode.USER_NOT_EXISTS);
         return user;
     }

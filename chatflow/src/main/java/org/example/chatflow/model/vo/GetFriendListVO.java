@@ -14,6 +14,9 @@ import java.util.List;
 @Data
 @Schema(description = "好友列表响应")
 public class GetFriendListVO {
+    @Schema(description = "好友id")
+    private Long id;
+
     @Schema(description = "好友备注")
     private String remark;
 
@@ -26,7 +29,6 @@ public class GetFriendListVO {
     @Mapper
     public interface FriendMapper {
         GetFriendListVO.FriendMapper INSTANCE = org.mapstruct.factory.Mappers.getMapper(GetFriendListVO.FriendMapper.class);
-
 
     }
 }

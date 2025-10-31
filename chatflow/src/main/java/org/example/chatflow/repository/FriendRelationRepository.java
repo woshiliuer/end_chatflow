@@ -11,4 +11,8 @@ public interface FriendRelationRepository extends BaseRepository<FriendRelation,
     List<FriendRelation> getFriendRelationByFriendId(Long friendId);
 
     List<FriendRelation>  getFriendRelationByUserId(Long userId);
+
+    FriendRelation findByUserAndFriendId(Long id, Long id1);
+
+    int countFriendRelationByUserIdAndFriends(Long userId, List<Long> friendIds);
 }

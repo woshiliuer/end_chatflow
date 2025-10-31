@@ -1,12 +1,14 @@
 package org.example.chatflow.common.enums;
 
+import lombok.Getter;
+
 /**
  * @author by zzr
  */
+@Getter
 public enum VerfCodeType {
 
     REGISTER(1, "注册"),
-
     FORGOT_PASSWORD(2, "找回密码");
 
     private final int code;
@@ -15,14 +17,6 @@ public enum VerfCodeType {
     VerfCodeType(int code, String description) {
         this.code = code;
         this.description = description;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     /**

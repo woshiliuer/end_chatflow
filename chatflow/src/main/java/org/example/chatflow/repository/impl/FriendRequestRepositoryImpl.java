@@ -1,5 +1,6 @@
 package org.example.chatflow.repository.impl;
 
+import org.example.chatflow.common.enums.RequestStatus;
 import org.example.chatflow.mapper.FriendRequestMapper;
 import org.example.chatflow.model.entity.FriendRequest;
 import org.example.chatflow.repository.FriendRequestRepository;
@@ -17,7 +18,9 @@ public class FriendRequestRepositoryImpl
         implements FriendRequestRepository {
     @Override
     public FriendRequest findByRequesterAndReceiverId(Long requesterId, Long receiverId) {
-        return lambdaQuery().eq(FriendRequest::getRequesterId,requesterId).eq(FriendRequest::getReceiverId,
+        return lambdaQuery().eq(FriendRequest::getRequesterId,requesterId).
+                eq(FriendRequest::getRequestStatus, RequestStatus.PENDING).
+                eq(FriendRequest::getReceiverId,
                 receiverId).one();
     }
 

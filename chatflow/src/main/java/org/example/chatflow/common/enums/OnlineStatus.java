@@ -8,8 +8,10 @@ import lombok.Getter;
  */
 @Getter
 public enum OnlineStatus {
+
     ONLINE(1, "在线"),
     OFFLINE(2, "离线");
+
     private final Integer code;
     private final String desc;
 

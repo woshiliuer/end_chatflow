@@ -30,7 +30,12 @@ public enum ErrorCode {
     SEX_ERROR("1018","性别错误"),
     FILE_IS_NULL("1019","文件为空"),
     UPDATE_USER_INFO_FAIL("1020","保存个人资料失败"),
-    CONFIRM_PASSWORD_ERROR("1021","两次密码不相同")
+    CONFIRM_PASSWORD_ERROR("1021","两次密码不相同"),
+    FRIEND_RELATION_NOT_EXISTS("1022","好友关系不存在"),
+    DELETE_FRIEND_FAIL("1023", "删除好友失败"),
+    GROUP_SAVE_FAIL("1024","群聊保存失败" ),
+    CONVERSATION_SAVE_FAIL("1025","会话保存失败" ),
+    CONVERSATION_USER_SAVE_FAIL("1026","会话成员关系保存失败" ),
     ;
 
     private final String code;
