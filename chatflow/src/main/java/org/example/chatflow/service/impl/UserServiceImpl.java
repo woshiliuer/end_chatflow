@@ -1,8 +1,5 @@
 package org.example.chatflow.service.impl;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -13,26 +10,28 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.enums.Gender;
 import org.example.chatflow.common.exception.BusinessException;
+import org.example.chatflow.model.dto.User.GetVerfCodeDTO;
 import org.example.chatflow.model.dto.User.LoginDTO;
+import org.example.chatflow.model.dto.User.RecoverPasswordDTO;
 import org.example.chatflow.model.dto.User.RegisterDTO;
+import org.example.chatflow.model.dto.User.UpdateUserInfoDTO;
 import org.example.chatflow.model.entity.User;
 import org.example.chatflow.model.vo.UserByEmailVO;
 import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.UserService;
+import org.example.chatflow.service.verifycode.VerifyCodeStrategyFactory;
+import org.example.chatflow.service.verifycode.strategy.VerifyCodeStrategy;
 import org.example.chatflow.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.mail.MailProperties;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author by zzr
@@ -46,8 +45,8 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final BcryptUtil bcryptUtil;
     private final RedisUtil redisUtil;
-    private final JavaMailSender mailSender;
-    private final MailProperties mailProperties;
+    private final AliOssUtil aliOssUtil;
+    private final VerifyCodeStrategyFactory verifyCodeStrategyFactory;
 
     /**
      * 登录
@@ -80,32 +79,9 @@ public class UserServiceImpl implements UserService {
      * 获取验证码
      */
     @Override
-    public CurlResponse<String> getVerfCode(String param) {
-        String email = StringUtils.trimToEmpty(param);
-        String redisKey = RedisKeyUtil.buildKey(RedisConstants.VERIFY_CODE_KEY_PREFIX, email);
-        VerifyUtil.isTrue(Boolean.TRUE.equals(redisUtil.hasKey(redisKey)), ErrorCode.VERIFY_CODE_ALREADY_SENT);
-        VerifyUtil.isTrue(StringUtils.isBlank(mailProperties.getUsername()), ErrorCode.MAIL_SENDER_NOT_CONFIGURED);
-
-        int codeValue = ThreadLocalRandom.current().nextInt(0, 1_000_000);
-        String code = StringUtils.leftPad(Integer.toString(codeValue), 6, '0');
-
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-
-            helper.setFrom(new InternetAddress(mailProperties.getUsername(), "Chatflow 邮箱验证", "UTF-8"));
-            helper.setTo(email);
-            helper.setSubject("Chatflow 验证码");
-            helper.setText("您的验证码为 " + code + "，请在 1 分钟内完成验证。", false);
-
-            mailSender.send(message);
-        } catch (MessagingException | UnsupportedEncodingException | MailException e) {
-            log.error("发送验证码失败, 邮箱: {}", email, e);
-            throw new BusinessException(ErrorCode.VERIFY_CODE_SEND_FAILED);
-        }
-
-        redisUtil.set(redisKey, code, RedisConstants.VERIFY_CODE_TTL);
-        return CurlResponse.success("验证码发送成功");
+    public CurlResponse<String> getVerfCode(GetVerfCodeDTO dto) {
+        VerifyCodeStrategy strategy = verifyCodeStrategyFactory.getStrategy(dto.getVerfCodeType());
+        return strategy.process(dto);
     }
 
     /**
@@ -117,7 +93,7 @@ public class UserServiceImpl implements UserService {
         String email = StringUtils.trimToEmpty(dto.getEmail());
         VerifyUtil.isTrue(userRepository.existsByEmail(email),ErrorCode.USER_EXISTS);
         // 验证验证码
-        String redisKey = RedisKeyUtil.buildKey(RedisConstants.VERIFY_CODE_KEY_PREFIX, email);
+        String redisKey = RedisKeyUtil.buildKey(RedisConstants.REGISTER_VERIFY_CODE_KEY_PREFIX, email);
         String verfCode = Optional.ofNullable((String) redisUtil.get(redisKey)).orElse("");
         VerifyUtil.isFalse(verfCode.equals(dto.getVerificationCode()),ErrorCode.VERIFICATION_CODE_ERROR);
 
@@ -152,10 +128,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_EXISTS));
 
         UserInfoVO userInfoVO = UserInfoVO.UserInfoVOMapper.INSTANCE.toVO(user);
-        Gender gender = Gender.fromCode(user.getGender());
-        VerifyUtil.isTrue(gender == null,ErrorCode.SEX_ERROR);
-        userInfoVO.setGenderDesc(gender.getDesc());
-        userInfoVO.setAvatarFullUrl(OssConstant.buildFullUrl(OssConstant.DEFAULT_AVATAR));
+        userInfoVO.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
 
         return CurlResponse.success(userInfoVO);
     }
@@ -172,8 +145,101 @@ public class UserServiceImpl implements UserService {
         return CurlResponse.success(userByEmailVO);
     }
 
+    /**
+     * 上传头像
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public CurlResponse<String> uploadAvatar(MultipartFile file) {
+        VerifyUtil.isTrue(file.isEmpty(),ErrorCode.FILE_IS_NULL);
+        User user = checkUserIsExists();
+        String url = "";
+        try {
+
+            url = aliOssUtil.upload(file.getBytes(), buildAvatarFileName(
+                    file,user.getId()
+            ));
+            //删除原来的
+            aliOssUtil.delete(user.getAvatarUrl());
+            //更新url
+            user.setAvatarUrl(aliOssUtil.toObjectKey(url));
+            userRepository.update(user);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return CurlResponse.success(url);
+    }
+
+    @Override
+    public CurlResponse<String> updateUserInfo(UpdateUserInfoDTO dto) {
+        User user = checkUserIsExists();
+
+        String nickname = dto.getNickname();
+        if (StringUtils.isNotBlank(nickname)) {
+            user.setNickname(nickname);
+        }
+
+        Integer gender = dto.getGender();
+        if (gender != null) {
+            Gender genderEnum = Gender.fromCode(gender);
+            if (genderEnum != null) {
+                user.setGender(genderEnum.getCode());
+            }
+        }
+
+        String signature = dto.getSignature();
+        if (StringUtils.isNotBlank(signature)) {
+            user.setSignature(signature);
+        }
+
+        VerifyUtil.ensureOperationSucceeded(userRepository.update(user), ErrorCode.UPDATE_USER_INFO_FAIL);
+        if (nickname != null) {
+            ThreadLocalUtil.setUserNickname(nickname);
+        }
+        return CurlResponse.success("保存成功");
+    }
+
+    @Override
+    public CurlResponse<String> recoverPassword(RecoverPasswordDTO dto) {
+        User user = checkUserIsExists();
+        //检查验证码是否正确
+        String redisKey = RedisKeyUtil.buildKey(RedisConstants.RECOVER_VERIFY_CODE_KEY_PREFIX, user.getEmail());
+        String verfCode = Optional.ofNullable((String) redisUtil.get(redisKey)).orElse("");
+        VerifyUtil.isFalse(verfCode.equals(dto.getVerfCode()),ErrorCode.VERIFICATION_CODE_ERROR);
+        //验证两次密码是否相等
+        String newPassword = dto.getNewPassword();
+        String newPasswordConfirm = dto.getNewPasswordConfirm();
+        VerifyUtil.isFalse(newPassword.equals(newPasswordConfirm),ErrorCode.CONFIRM_PASSWORD_ERROR);
+        //校验密码格式
+        checkPassword(newPassword);
+        //更新为密码
+        String password = bcryptUtil.hash(newPassword);
+        user.setPassword(password);
+        VerifyUtil.ensureOperationSucceeded(userRepository.update(user), ErrorCode.UPDATE_USER_INFO_FAIL);
+        return CurlResponse.success("成功重置密码");
+    }
+
+    private User checkUserIsExists(){
+        Long userId = ThreadLocalUtil.getUserId();
+        User user = userRepository.findById(userId).get();
+        VerifyUtil.isTrue(user == null, ErrorCode.USER_NOT_EXISTS);
+        return user;
+    }
+
     private void checkPassword(String rawPassword) {
         VerifyUtil.isTrue(rawPassword.length() < 8 || rawPassword.length() > 12, ErrorCode.PASSWORD_LENGTH_ERROR);
         VerifyUtil.isFalse(rawPassword.matches("^[a-zA-Z0-9]+$"), ErrorCode.PASSWORD_MUST_NUM_ENG);
+    }
+
+    private String buildAvatarFileName(MultipartFile file,Long userId) {
+        String originalFilename = file.getOriginalFilename();
+        String suffix = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        // 生成唯一文件名：用户ID + 时间戳 + 随机数 + 后缀
+        String fileName = "avatar/" + userId + "_" + System.currentTimeMillis()
+                + "_" + (int)(Math.random() * 10000) + suffix;
+        return fileName;
     }
 }

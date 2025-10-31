@@ -9,8 +9,7 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.exception.BusinessException;
-import org.example.chatflow.model.dto.User.LoginDTO;
-import org.example.chatflow.model.dto.User.RegisterDTO;
+import org.example.chatflow.model.dto.User.*;
 import org.example.chatflow.model.vo.UserByEmailVO;
 import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.service.UserService;
@@ -20,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * User-related endpoints.
@@ -40,10 +40,10 @@ public class UserController {
         return userService.login(dto);
     }
 
-    @Operation(summary = "获取验证码", description = "参数传邮箱")
+    @Operation(summary = "获取验证码")
     @PostMapping("/getVerfCode")
-    public CurlResponse<String> getVerfCode(@RequestBody @Validated Param<String> param) {
-        return userService.getVerfCode(param.getParam());
+    public CurlResponse<String> getVerfCode(@RequestBody @Validated GetVerfCodeDTO dto) {
+        return userService.getVerfCode(dto);
     }
 
     @Operation(summary = "注册")
@@ -84,9 +84,22 @@ public class UserController {
         return userService.getUserInfoByEmail(param.getParam());
     }
 
-    @Operation(summary = "上传头像")
+    @Operation(summary = "上传头像",description = "参数传头像文件")
     @PostMapping("/uploadAvatar")
-    public CurlResponse<String> uploadAvatar(@RequestBody @Validated Param<String> param) {
-        return null;
+    public CurlResponse<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        return userService.uploadAvatar(file);
     }
+
+    @Operation(summary = "修改个人资料")
+    @PostMapping("/updateUserInfo")
+    public CurlResponse<String> updateUserInfo(@RequestBody @Validated UpdateUserInfoDTO dto) {
+        return userService.updateUserInfo(dto);
+    }
+
+    @Operation(summary = "找回密码")
+    @PostMapping("/recoverPassword")
+    public CurlResponse<String> recoverPassword(@RequestBody @Validated RecoverPasswordDTO dto) {
+        return userService.recoverPassword(dto);
+    }
+
 }

@@ -23,7 +23,7 @@ public class UserInfoVO {
     private String avatarFullUrl;
 
     @Schema(description = "性别")
-    private String genderDesc;
+    private String gender;
 
     @Schema(description = "个性签名")
     private String signature;

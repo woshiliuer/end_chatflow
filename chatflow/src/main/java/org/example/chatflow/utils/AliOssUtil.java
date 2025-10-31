@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -27,7 +29,7 @@ public class AliOssUtil {
     private final AliOssProperties aliOssProperties;
 
     /**
-     * Upload a file to OSS.
+     * 上传oss文件
      *
      * @param bytes      file data
      * @param objectName object key to persist to
@@ -93,4 +95,45 @@ public class AliOssUtil {
 
     private record NormalizedEndpoint(String scheme, String authority) {
     }
+
+    /**
+     * 删除oss文件
+     * @param objectName
+     */
+    public void delete(String objectName) {
+        Objects.requireNonNull(objectName, "objectName must not be null");
+
+        try {
+            // 调用 OSS SDK 删除对象
+            ossClient.deleteObject(aliOssProperties.getBucketName(), objectName);
+            log.info("File deleted successfully from OSS: {}", objectName);
+        } catch (OSSException oe) {
+            log.error("OSS rejected the delete request, requestId={}, errorCode={}, message={}",
+                    oe.getRequestId(), oe.getErrorCode(), oe.getErrorMessage(), oe);
+            throw oe;
+        } catch (ClientException ce) {
+            log.error("Client error while communicating with OSS during delete: {}", ce.getMessage(), ce);
+            throw ce;
+        }
+    }
+
+    /**
+     * 从 URL 提取对象键
+     * @param urlOrKey
+     * @return
+     */
+    public static String toObjectKey(String urlOrKey) {
+        // 如果传进来已经是 key（没有 ://），直接规范化返回
+        if (urlOrKey == null || !urlOrKey.contains("://")) {
+            if (urlOrKey == null) return null;
+            String decoded = URLDecoder.decode(urlOrKey, StandardCharsets.UTF_8);
+            return decoded.startsWith("/") ? decoded.substring(1) : decoded;
+        }
+        URI uri = URI.create(urlOrKey);
+        String path = uri.getPath(); // e.g. "/avatar/xxx.jpg"
+        String decoded = URLDecoder.decode(path, StandardCharsets.UTF_8);
+        return decoded.startsWith("/") ? decoded.substring(1) : decoded;
+    }
+
+
 }

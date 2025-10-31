@@ -11,7 +11,8 @@ public final class RedisConstants {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static final String VERIFY_CODE_KEY_PREFIX = "verify-code:";
+    public static final String REGISTER_VERIFY_CODE_KEY_PREFIX = "register-verify-code:";
+    public static final String RECOVER_VERIFY_CODE_KEY_PREFIX = "recover-verify-code:";
     public static final Duration VERIFY_CODE_TTL = Duration.ofMinutes(1);
 
 }

@@ -5,7 +5,7 @@ package org.example.chatflow.common.enums;
  * Enumerates application-wide error codes.
  */
 public enum ErrorCode {
-    VALIDATION_ERROR("400", "Validation failed"),
+    VALIDATION_ERROR("400", "参数不合法"),
     UNAUTHORIZED("401", "Unauthorized"),
     BUSINESS_ERROR("409", "Business rule violation"),
     INTERNAL_ERROR("500", "服务器内部错误"),
@@ -27,7 +27,10 @@ public enum ErrorCode {
     DISAGREE_FRIEND_FAIL("1015","拒绝好友申请失败"),
     FRIEND_REQUEST_EXISTS("1016","不可重复申请添加好友"),
     REQUESTID_EQUALS_RECEIVERID("1017","不能申请添加自己为好友"),
-    SEX_ERROR("1018","性别错误")
+    SEX_ERROR("1018","性别错误"),
+    FILE_IS_NULL("1019","文件为空"),
+    UPDATE_USER_INFO_FAIL("1020","保存个人资料失败"),
+    CONFIRM_PASSWORD_ERROR("1021","两次密码不相同")
     ;
 
     private final String code;
