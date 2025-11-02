@@ -25,13 +25,5 @@ public interface ConversationUserRepository extends BaseRepository<ConversationU
      */
     List<ConversationUser> findByConversationIds(Collection<Long> conversationIds);
 
-    /**
-     * 根据会话ID和成员ID查询关系
-     *
-     * @param conversationId 会话ID
-     * @param memberId       成员ID
-     * @return 会话成员关系
-     */
     ConversationUser findByConversationIdAndMemberId(Long conversationId, Long memberId);
 }
-

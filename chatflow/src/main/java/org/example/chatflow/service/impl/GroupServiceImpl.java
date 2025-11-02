@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
+import org.example.chatflow.common.enums.ConversationStatus;
 import org.example.chatflow.common.enums.ConversationType;
 import org.example.chatflow.common.enums.Deleted;
 import org.example.chatflow.common.enums.ErrorCode;
@@ -161,6 +162,7 @@ public class GroupServiceImpl implements GroupService {
         conversationUser.setMemberId(memberId);
         conversationUser.setRole(role.getCode());
         conversationUser.setJoinTime(System.currentTimeMillis()/1000);
+        conversationUser.setStatus(ConversationStatus.NORMAL.getCode());
         return conversationUser;
     }
 

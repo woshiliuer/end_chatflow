@@ -11,8 +11,7 @@ import java.util.List;
  */
 public interface ConversationService {
     CurlResponse<List<SessionVO>> getSessionList();
+    CurlResponse<String> setFavorite(Long param);
 
-    CurlResponse<String> setConversationCommon(Long conversationId, boolean enable);
-
-    CurlResponse<String> deleteConversation(Long conversationId);
+    CurlResponse<String> cancelFavorite(Long param);
 }

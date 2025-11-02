@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ConversationType;
+import org.example.chatflow.common.enums.ConversationStatus;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.model.entity.ChatGroup;
 import org.example.chatflow.model.entity.Conversation;
@@ -60,22 +61,27 @@ public class ConversationServiceImpl implements ConversationService {
         }
 
         Map<Long, Long> lastReadSeqByConversation = new LinkedHashMap<>();
-        Map<Long, Boolean> commonFlagByConversation = new LinkedHashMap<>();
+        Map<Long, Integer> statusByConversation = new LinkedHashMap<>();
         for (ConversationUser relation : relations) {
             Long conversationId = relation.getConversationId();
             if (conversationId == null) {
                 continue;
             }
-            lastReadSeqByConversation.putIfAbsent(conversationId,
-                relation.getLastReadSeq() == null ? 0L : relation.getLastReadSeq());
-            boolean isCommon = relation.getIsCommon() != null && relation.getIsCommon() == 1;
-            commonFlagByConversation.putIfAbsent(conversationId, isCommon);
+            int status = relation.getStatus() == null
+                ? ConversationStatus.NORMAL.getCode()
+                : relation.getStatus();
+            if (ConversationStatus.HIDDEN.getCode() == status) {
+                continue;
+            }
+            statusByConversation.putIfAbsent(conversationId, status);
+            long lastReadSeq = relation.getLastReadSeq() == null ? 0L : relation.getLastReadSeq();
+            lastReadSeqByConversation.putIfAbsent(conversationId, lastReadSeq);
         }
-        if (lastReadSeqByConversation.isEmpty()) {
+        if (statusByConversation.isEmpty()) {
             return CurlResponse.success(Collections.emptyList());
         }
 
-        Set<Long> conversationIds = new LinkedHashSet<>(lastReadSeqByConversation.keySet());
+        Set<Long> conversationIds = new LinkedHashSet<>(statusByConversation.keySet());
         List<Conversation> conversations = conversationRepository.findByIds(conversationIds);
         if (conversations.isEmpty()) {
             return CurlResponse.success(Collections.emptyList());
@@ -97,9 +103,42 @@ public class ConversationServiceImpl implements ConversationService {
             messagesByConversation, lastReadSeqByConversation, user.getId());
 
         List<SessionVO> sessionVOList = buildSessionList(conversations,
-            privateConversationUserMap, groupConversationMap, lastMessageMap, unreadCountMap, commonFlagByConversation);
+            privateConversationUserMap, groupConversationMap, lastMessageMap, unreadCountMap, statusByConversation);
 
         return CurlResponse.success(sessionVOList);
+    }
+
+
+    /**
+     * 设置为常用会话
+     */
+    @Override
+    public CurlResponse<String> setFavorite(Long param) {
+        User user = currentUserAccessor.getCurrentUser();
+        ConversationUser conversationUser = conversationUserRepository.findByConversationIdAndMemberId(param, user.getId());
+        VerifyUtil.isTrue(conversationUser == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
+        if (!Objects.equals(conversationUser.getStatus(), ConversationStatus.FAVORITE.getCode())) {
+            conversationUser.setStatus(ConversationStatus.FAVORITE.getCode());
+            VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(conversationUser),
+                    ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+        }
+        return CurlResponse.success("成功设置为常用会话");
+    }
+
+    /**
+     * 取消常用会话
+     */
+    @Override
+    public CurlResponse<String> cancelFavorite(Long param) {
+        User user = currentUserAccessor.getCurrentUser();
+        ConversationUser conversationUser = conversationUserRepository.findByConversationIdAndMemberId(param, user.getId());
+        VerifyUtil.isTrue(conversationUser == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
+        if (!Objects.equals(conversationUser.getStatus(), ConversationStatus.NORMAL.getCode())) {
+            conversationUser.setStatus(ConversationStatus.NORMAL.getCode());
+            VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(conversationUser),
+                    ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+        }
+        return CurlResponse.success("成功取消常用会话");
     }
 
     private ConversationBuckets categorizeConversations(List<Conversation> conversations) {
@@ -124,14 +163,14 @@ public class ConversationServiceImpl implements ConversationService {
                                              Map<Long, ChatGroup> groupConversationMap,
                                              Map<Long, Message> lastMessageMap,
                                              Map<Long, Integer> unreadCountMap,
-                                             Map<Long, Boolean> commonFlagByConversation) {
+                                             Map<Long, Integer> statusByConversation) {
         // 逐个会话组装输出字段，重用预先拉好的数据 
         List<SessionVO> sessionVOList = new ArrayList<>(conversations.size());
         for (Conversation conversation : conversations) {
             Message message = lastMessageMap.get(conversation.getId());
             int unreadCount = unreadCountMap.getOrDefault(conversation.getId(), 0);
-            SessionVO sessionVO = SessionVO.SessionVOMapper.INSTANCE.toVO(conversation, message, unreadCount);
-            sessionVO.setCommon(commonFlagByConversation.getOrDefault(conversation.getId(), false));
+            int status = statusByConversation.getOrDefault(conversation.getId(), ConversationStatus.NORMAL.getCode());
+            SessionVO sessionVO = SessionVO.SessionVOMapper.INSTANCE.toVO(conversation, message, unreadCount, status);
             if (ConversationType.PRIVATE.getCode().equals(conversation.getConversationType())) {
                 User partner = privateConversationUserMap.get(conversation.getId());
                 if (partner != null) {
@@ -318,35 +357,8 @@ public class ConversationServiceImpl implements ConversationService {
         return result;
     }
 
-    @Override
-    public CurlResponse<String> setConversationCommon(Long conversationId, boolean enable) {
-        User user = currentUserAccessor.getCurrentUser();
-        ConversationUser relation = conversationUserRepository.findByConversationIdAndMemberId(conversationId, user.getId());
-        VerifyUtil.isTrue(relation == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
-        int targetFlag = enable ? 1 : 0;
-        if (!Objects.equals(relation.getIsCommon(), targetFlag)) {
-            relation.setIsCommon(targetFlag);
-            boolean updated = conversationUserRepository.update(relation);
-            VerifyUtil.ensureOperationSucceeded(updated, ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
-        }
-        return CurlResponse.success("设置成功");
-    }
 
-    @Override
-    public CurlResponse<String> deleteConversation(Long conversationId) {
-        User user = currentUserAccessor.getCurrentUser();
-        ConversationUser relation = conversationUserRepository.findByConversationIdAndMemberId(conversationId, user.getId());
-        VerifyUtil.isTrue(relation == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
-        boolean removed = conversationUserRepository.deleteById(relation.getId());
-        VerifyUtil.ensureOperationSucceeded(removed, ErrorCode.CONVERSATION_USER_DELETE_FAIL);
 
-        List<ConversationUser> remainingRelations = conversationUserRepository.findByConversationIds(Collections.singleton(conversationId));
-        if (remainingRelations == null || remainingRelations.isEmpty()) {
-            messageRepository.deleteByConversationId(conversationId);
-            conversationRepository.deleteById(conversationId);
-        }
-        return CurlResponse.success("删除成功");
-    }
 
     private static final class ConversationBuckets {
         private final List<Conversation> privateConversations;

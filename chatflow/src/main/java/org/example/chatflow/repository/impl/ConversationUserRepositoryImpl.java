@@ -3,6 +3,8 @@ package org.example.chatflow.repository.impl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import org.example.chatflow.common.enums.ConversationStatus;
 import org.example.chatflow.mapper.ConversationUserMapper;
 import org.example.chatflow.model.entity.ConversationUser;
 import org.example.chatflow.repository.ConversationUserRepository;
@@ -23,6 +25,7 @@ public class ConversationUserRepositoryImpl
         }
         return lambdaQuery()
             .eq(ConversationUser::getMemberId, memberId)
+            .ne(ConversationUser::getStatus, ConversationStatus.HIDDEN.getCode())
             .list();
     }
 
@@ -36,14 +39,17 @@ public class ConversationUserRepositoryImpl
             .list();
     }
 
+
+
     @Override
     public ConversationUser findByConversationIdAndMemberId(Long conversationId, Long memberId) {
         if (conversationId == null || memberId == null) {
             return null;
         }
         return lambdaQuery()
-            .eq(ConversationUser::getConversationId, conversationId)
-            .eq(ConversationUser::getMemberId, memberId)
-            .one();
+                .eq(ConversationUser::getConversationId, conversationId)
+                .eq(ConversationUser::getMemberId, memberId)
+                .one();
     }
+
 }

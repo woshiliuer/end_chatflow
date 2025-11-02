@@ -48,8 +48,8 @@ public class ConversationUser extends BaseEntity<Long> {
     private Long lastReadTime;
 
     /**
-     * 是否常用会话：0 否 1 是
+     * 会话状态：1 常规 2 隐藏 3 常用
      */
-    @TableField("is_common")
-    private Integer isCommon;
+    @TableField("status")
+    private Integer status;
 }

@@ -36,8 +36,8 @@ public class SessionVO {
     @Schema(description = "未读消息数")
     private int unreadCount;
 
-    @Schema(description = "是否常用会话")
-    private boolean common;
+    @Schema(description = "会话状态：1正常 2隐藏 3常用")
+    private int status;
 
     @Mapper
     public interface SessionVOMapper{
@@ -48,7 +48,7 @@ public class SessionVO {
         @Mapping(source = "message.content", target = "content")
         @Mapping(source = "message.sendTime", target = "sendTime")
         @Mapping(source = "unreadCount", target = "unreadCount")
-        @Mapping(target = "common", ignore = true)
-        SessionVO toVO(Conversation conversation, Message message, int unreadCount);
+        @Mapping(source = "status", target = "status")
+        SessionVO toVO(Conversation conversation, Message message, int unreadCount, int status);
     }
 }

@@ -82,15 +82,18 @@ CREATE TABLE `conversation_user` (
                                      `conversation_id` BIGINT(20) NOT NULL COMMENT '会话ID',
                                      `user_id` BIGINT(20) NOT NULL COMMENT '参与用户ID',
                                      `role` TINYINT NOT NULL DEFAULT 0 COMMENT '角色：1普通成员 2管理员 3群主',
-                                     `join_time` BIGINT(20) NOT NULL COMMENT '加入时间',
-                                     `create_user_id` BIGINT(20) NOT NULL COMMENT '创建人ID',
-                                     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人名称',
-                                     `create_time` BIGINT(20) NOT NULL COMMENT '创建时间',
-                                     `update_user_id` BIGINT(20) DEFAULT NULL COMMENT '更新人ID',
-                                     `update_by` VARCHAR(32) DEFAULT NULL COMMENT '更新人名称',
-                                     `update_time` BIGINT(20) DEFAULT NULL COMMENT '更新时间',
-                                     PRIMARY KEY (`id`),
-                                     UNIQUE KEY `uk_conversation_user` (`conversation_id`, `user_id`)
+                              `join_time` BIGINT(20) NOT NULL COMMENT '加入时间',
+                              `last_read_seq` BIGINT(20) NOT NULL DEFAULT 0 COMMENT '最后已读消息序号',
+                              `last_read_time` BIGINT(20) NOT NULL DEFAULT 0 COMMENT '最后已读时间（毫秒时间戳）',
+                              `status` TINYINT(2) NOT NULL DEFAULT 1 COMMENT '会话状态：1正常 2隐藏 3常用',
+                              `create_user_id` BIGINT(20) NOT NULL COMMENT '创建人ID',
+                              `create_by` VARCHAR(32) NOT NULL COMMENT '创建人名称',
+                              `create_time` BIGINT(20) NOT NULL COMMENT '创建时间',
+                              `update_user_id` BIGINT(20) DEFAULT NULL COMMENT '更新人ID',
+                              `update_by` VARCHAR(32) DEFAULT NULL COMMENT '更新人名称',
+                              `update_time` BIGINT(20) DEFAULT NULL COMMENT '更新时间',
+                              PRIMARY KEY (`id`),
+                              UNIQUE KEY `uk_conversation_user` (`conversation_id`, `user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会话用户关系表';
 
 
@@ -161,18 +164,3 @@ ADD COLUMN `deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否删除：0正�
 ALTER TABLE `message`
 ADD COLUMN `send_time` BIGINT NOT NULL DEFAULT 0 COMMENT '发送时间（毫秒时间戳）' AFTER `message_type`;
 
-
-CREATE TABLE `message_read` (
-  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `message_id` BIGINT(20)  NOT NULL COMMENT '消息ID',
-  `user_id` BIGINT(20)  NOT NULL COMMENT '已读用户ID',
-  `read_time` BIGINT(20)  NOT NULL COMMENT '阅读时间（毫秒时间戳）',
-    `create_user_id` BIGINT(20) NOT NULL COMMENT '创建人ID',
-    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人名称',
-    `create_time` BIGINT(20) NOT NULL COMMENT '创建时间',
-    `update_user_id` BIGINT(20) DEFAULT NULL COMMENT '更新人ID',
-    `update_by` VARCHAR(32) DEFAULT NULL COMMENT '更新人名称',
-    `update_time` BIGINT(20) DEFAULT NULL COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_message_user` (`message_id`, `user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息已读状态表';
