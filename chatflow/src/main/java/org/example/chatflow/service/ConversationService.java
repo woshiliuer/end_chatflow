@@ -14,4 +14,6 @@ public interface ConversationService {
     CurlResponse<String> setFavorite(Long param);
 
     CurlResponse<String> cancelFavorite(Long param);
+
+    CurlResponse<String> deleteConversation(Long param);
 }

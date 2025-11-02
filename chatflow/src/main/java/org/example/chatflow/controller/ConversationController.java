@@ -42,7 +42,10 @@ public class ConversationController {
         return conversationService.cancelFavorite(param.getParam());
     }
 
-//    @Operation(description = "删除会话")
-//    @PostMapping("/deleteSession")
+    @Operation(summary = "删除会话", description = "参数传会话Id")
+    @PostMapping("/deleteSession")
+    public CurlResponse<String> deleteSession(@RequestBody @Validated Param<Long> param) {
+        return conversationService.deleteConversation(param.getParam());
+    }
 
 }

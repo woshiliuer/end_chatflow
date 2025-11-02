@@ -117,7 +117,7 @@ public class ConversationServiceImpl implements ConversationService {
         User user = currentUserAccessor.getCurrentUser();
         ConversationUser conversationUser = conversationUserRepository.findByConversationIdAndMemberId(param, user.getId());
         VerifyUtil.isTrue(conversationUser == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
-        if (!Objects.equals(conversationUser.getStatus(), ConversationStatus.FAVORITE.getCode())) {
+        if (Objects.equals(conversationUser.getStatus(), ConversationStatus.NORMAL.getCode())) {
             conversationUser.setStatus(ConversationStatus.FAVORITE.getCode());
             VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(conversationUser),
                     ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
@@ -139,6 +139,22 @@ public class ConversationServiceImpl implements ConversationService {
                     ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
         }
         return CurlResponse.success("成功取消常用会话");
+    }
+
+    /**
+     * 删除会话（标记为隐藏）
+     */
+    @Override
+    public CurlResponse<String> deleteConversation(Long param) {
+        User user = currentUserAccessor.getCurrentUser();
+        ConversationUser conversationUser = conversationUserRepository.findByConversationIdAndMemberId(param, user.getId());
+        VerifyUtil.isTrue(conversationUser == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
+        if (!Objects.equals(conversationUser.getStatus(), ConversationStatus.HIDDEN.getCode())) {
+            conversationUser.setStatus(ConversationStatus.HIDDEN.getCode());
+            VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(conversationUser),
+                    ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+        }
+        return CurlResponse.success("删除成功");
     }
 
     private ConversationBuckets categorizeConversations(List<Conversation> conversations) {
