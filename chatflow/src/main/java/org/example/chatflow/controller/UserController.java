@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.example.chatflow.aop.DisableAutoFill;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.common.enums.ErrorCode;
@@ -48,6 +49,7 @@ public class UserController {
 
     @Operation(summary = "注册")
     @PostMapping("/register")
+    @DisableAutoFill
     public CurlResponse<String> register(@RequestBody RegisterDTO dto) {
         return userService.register(dto);
     }

@@ -142,3 +142,37 @@ DROP COLUMN `status`;
 
 ALTER TABLE `conversation_user`
     CHANGE COLUMN `user_id` `member_id` BIGINT NOT NULL COMMENT '成员ID';
+
+-- 修改 create_user_id 字段为可空
+ALTER TABLE `user`
+MODIFY COLUMN `create_user_id` BIGINT(20) DEFAULT NULL COMMENT '创建人ID';
+
+-- 修改 create_by 字段为可空
+ALTER TABLE `user`
+MODIFY COLUMN `create_by` VARCHAR(32) DEFAULT NULL COMMENT '创建人名称';
+
+-- 修改 create_time 字段为可空
+ALTER TABLE `user`
+MODIFY COLUMN `create_time` BIGINT(20) DEFAULT NULL COMMENT '创建时间';
+
+ALTER TABLE `friend_relation`
+ADD COLUMN `deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否删除：0正常，1删除'
+
+ALTER TABLE `message`
+ADD COLUMN `send_time` BIGINT NOT NULL DEFAULT 0 COMMENT '发送时间（毫秒时间戳）' AFTER `message_type`;
+
+
+CREATE TABLE `message_read` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `message_id` BIGINT(20)  NOT NULL COMMENT '消息ID',
+  `user_id` BIGINT(20)  NOT NULL COMMENT '已读用户ID',
+  `read_time` BIGINT(20)  NOT NULL COMMENT '阅读时间（毫秒时间戳）',
+    `create_user_id` BIGINT(20) NOT NULL COMMENT '创建人ID',
+    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人名称',
+    `create_time` BIGINT(20) NOT NULL COMMENT '创建时间',
+    `update_user_id` BIGINT(20) DEFAULT NULL COMMENT '更新人ID',
+    `update_by` VARCHAR(32) DEFAULT NULL COMMENT '更新人名称',
+    `update_time` BIGINT(20) DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_message_user` (`message_id`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息已读状态表';

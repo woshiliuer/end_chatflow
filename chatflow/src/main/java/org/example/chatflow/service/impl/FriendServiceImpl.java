@@ -5,10 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
-import org.example.chatflow.common.enums.ApplyDirection;
-import org.example.chatflow.common.enums.ErrorCode;
-import org.example.chatflow.common.enums.OnlineStatus;
-import org.example.chatflow.common.enums.RequestStatus;
+import org.example.chatflow.common.enums.*;
 import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.friend.AddRequestDTO;
 import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
@@ -23,7 +20,7 @@ import org.example.chatflow.repository.FriendRelationRepository;
 import org.example.chatflow.repository.FriendRequestRepository;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.FriendService;
-import org.example.chatflow.service.support.CurrentUserAccessor;
+import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.ThreadLocalUtil;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +80,7 @@ public class FriendServiceImpl implements FriendService {
     /**
      * 申请添加好友
      */
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public CurlResponse<String> addFriendRequest(AddRequestDTO dto) {
         Long userId = ThreadLocalUtil.getUserId();
@@ -95,12 +93,30 @@ public class FriendServiceImpl implements FriendService {
 
         FriendRequest friendRequest = bulidRequest(userId,friend,dto);
 
+        //双方已存在好友关系并存在单向删除，自动建立好友关系
+        FriendRelation userToFriend = friendRelationRepository.findByUserAndFriendId(userId,friend.getId());
+        FriendRelation friendToUser = friendRelationRepository.findByUserAndFriendId(friend.getId(),userId);
+        if (userToFriend != null && friendToUser != null) {
+            if (Deleted.HAS_NOT_DELETED.getCode().equals(friendToUser.getDeleted()) &&
+                    Deleted.HAS_NOT_DELETED.getCode().equals(userToFriend.getDeleted()))  {
+                throw  new BusinessException(ErrorCode.ALREADY_FRIEND_RELATION);
+            }
+            else if (Deleted.HAS_NOT_DELETED.getCode().equals(friendToUser.getDeleted()) &&
+                    Deleted.HAS_DELETED.getCode().equals(userToFriend.getDeleted())) {
+                userToFriend.setDeleted(Deleted.HAS_NOT_DELETED.getCode());
+                VerifyUtil.ensureOperationSucceeded(friendRelationRepository.update(userToFriend),ErrorCode.AGREE_FRIEND_FAIL);
+                friendRequest.setRequestStatus(RequestStatus.APPROVED.getCode());
+                friendRequest.setHandledAt(System.currentTimeMillis()/1000);
+                return CurlResponse.success("好友添加成功");
+            }
+        }
         VerifyUtil.ensureOperationSucceeded(
                 friendRequestRepository.save(friendRequest),
                 ErrorCode.FRIEND_REQUEST_ADD_FAIL
         );
         return CurlResponse.success("好友申请成功");
     }
+
 
     /**
      * 删除好友
@@ -113,8 +129,9 @@ public class FriendServiceImpl implements FriendService {
         FriendRelation userToFriend = friendRelationRepository
                 .findByUserAndFriendId(user.getId(), friend.getId());
         VerifyUtil.isTrue(userToFriend == null,ErrorCode.FRIEND_RELATION_NOT_EXISTS);
+        userToFriend.setDeleted(Deleted.HAS_DELETED.getCode());
         //删除好友关系
-        VerifyUtil.ensureOperationSucceeded(friendRelationRepository.deleteById(userToFriend.getId()),ErrorCode.DELETE_FRIEND_FAIL);
+        VerifyUtil.ensureOperationSucceeded(friendRelationRepository.update(userToFriend),ErrorCode.DELETE_FRIEND_FAIL);
         return CurlResponse.success("删除成功");
     }
 
@@ -199,11 +216,13 @@ public class FriendServiceImpl implements FriendService {
         newUserToFriend.setUserId(userId);
         newUserToFriend.setFriendId(dto.getFriendId());
         newUserToFriend.setRemark(dto.getRemark());
+        newUserToFriend.setDeleted(Deleted.HAS_NOT_DELETED.getCode());
 
         FriendRelation newFriendToUser = new FriendRelation();
         newFriendToUser.setFriendId(userId);
         newFriendToUser.setUserId(dto.getFriendId());
         newFriendToUser.setRemark(request.getApplyRemark());
+        newFriendToUser.setDeleted(Deleted.HAS_NOT_DELETED.getCode());
         List<FriendRelation> relations = new  ArrayList<>();
 
         if (userToFriend == null) {

@@ -1,5 +1,7 @@
 package org.example.chatflow.repository;
 
+import java.util.Collection;
+import java.util.List;
 import org.example.chatflow.model.entity.ConversationUser;
 
 /**
@@ -13,5 +15,23 @@ public interface ConversationUserRepository extends BaseRepository<ConversationU
      * @param memberId 成员ID
      * @return 会话关系列表
      */
-    java.util.List<ConversationUser> findByMemberId(Long memberId);
+    List<ConversationUser> findByMemberId(Long memberId);
+
+    /**
+     * 根据会话ID集合查询成员关系
+     *
+     * @param conversationIds 会话ID集合
+     * @return 会话成员关系列表
+     */
+    List<ConversationUser> findByConversationIds(Collection<Long> conversationIds);
+
+    /**
+     * 根据会话ID和成员ID查询关系
+     *
+     * @param conversationId 会话ID
+     * @param memberId       成员ID
+     * @return 会话成员关系
+     */
+    ConversationUser findByConversationIdAndMemberId(Long conversationId, Long memberId);
 }
+

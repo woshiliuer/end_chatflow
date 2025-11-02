@@ -20,9 +20,9 @@ import org.example.chatflow.model.vo.UserByEmailVO;
 import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.UserService;
-import org.example.chatflow.service.support.CurrentUserAccessor;
-import org.example.chatflow.service.verifycode.VerifyCodeStrategyFactory;
-import org.example.chatflow.service.verifycode.strategy.VerifyCodeStrategy;
+import org.example.chatflow.support.CurrentUserAccessor;
+import org.example.chatflow.factory.VerifyCodeStrategyFactory;
+import org.example.chatflow.strategy.VerifyCodeStrategy;
 import org.example.chatflow.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -162,7 +162,9 @@ public class UserServiceImpl implements UserService {
                     file,user.getId()
             ));
             //删除原来的
-            aliOssUtil.delete(user.getAvatarUrl());
+            String avatar = user.getAvatarUrl();
+            if (!OssConstant.DEFAULT_AVATAR.equals(avatar)) {}
+                aliOssUtil.delete(avatar);
             //更新url
             user.setAvatarUrl(aliOssUtil.toObjectKey(url));
             userRepository.update(user);

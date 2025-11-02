@@ -1,4 +1,4 @@
-package org.example.chatflow.service.verifycode.strategy;
+package org.example.chatflow.strategy;
 
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.VerfCodeType;

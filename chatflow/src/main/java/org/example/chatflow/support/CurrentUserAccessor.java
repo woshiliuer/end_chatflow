@@ -1,4 +1,4 @@
-package org.example.chatflow.service.support;
+package org.example.chatflow.support;
 
 import lombok.RequiredArgsConstructor;
 import org.example.chatflow.common.enums.ErrorCode;

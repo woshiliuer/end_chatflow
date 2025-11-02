@@ -1,5 +1,6 @@
 package org.example.chatflow.repository.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.example.chatflow.mapper.ConversationUserMapper;
@@ -23,5 +24,26 @@ public class ConversationUserRepositoryImpl
         return lambdaQuery()
             .eq(ConversationUser::getMemberId, memberId)
             .list();
+    }
+
+    @Override
+    public List<ConversationUser> findByConversationIds(Collection<Long> conversationIds) {
+        if (conversationIds == null || conversationIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return lambdaQuery()
+            .in(ConversationUser::getConversationId, conversationIds)
+            .list();
+    }
+
+    @Override
+    public ConversationUser findByConversationIdAndMemberId(Long conversationId, Long memberId) {
+        if (conversationId == null || memberId == null) {
+            return null;
+        }
+        return lambdaQuery()
+            .eq(ConversationUser::getConversationId, conversationId)
+            .eq(ConversationUser::getMemberId, memberId)
+            .one();
     }
 }

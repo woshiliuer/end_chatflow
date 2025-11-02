@@ -30,4 +30,9 @@ public class FriendRelation extends BaseEntity<Long> {
     @TableField("remark")
     private String remark;
 
+    /**
+     * 删除标记
+     */
+    @TableField("deleted")
+    private Integer deleted;
 }

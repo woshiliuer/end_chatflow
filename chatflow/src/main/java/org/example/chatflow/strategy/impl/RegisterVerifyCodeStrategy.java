@@ -1,9 +1,9 @@
-package org.example.chatflow.service.verifycode.strategy.impl;
+package org.example.chatflow.strategy.impl;
 
 import org.example.chatflow.common.constants.RedisConstants;
 import org.example.chatflow.common.enums.VerfCodeType;
 import org.example.chatflow.utils.RedisUtil;
-import org.example.chatflow.service.verifycode.strategy.AbstractVerifyCodeStrategy;
+import org.example.chatflow.strategy.AbstractVerifyCodeStrategy;
 import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;

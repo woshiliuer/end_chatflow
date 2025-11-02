@@ -36,6 +36,10 @@ public enum ErrorCode {
     GROUP_SAVE_FAIL("1024","群聊保存失败" ),
     CONVERSATION_SAVE_FAIL("1025","会话保存失败" ),
     CONVERSATION_USER_SAVE_FAIL("1026","会话成员关系保存失败" ),
+    ALREADY_FRIEND_RELATION("1027","已经是好友关系了"),
+    CONVERSATION_RELATION_NOT_EXISTS("1028","会话关系不存在"),
+    CONVERSATION_USER_UPDATE_FAIL("1029","更新会话关系失败"),
+    CONVERSATION_USER_DELETE_FAIL("1030","删除会话关系失败")
     ;
 
     private final String code;

@@ -1,5 +1,6 @@
 package org.example.chatflow.repository.impl;
 
+import org.example.chatflow.common.enums.Deleted;
 import org.example.chatflow.mapper.FriendRelationMapper;
 import org.example.chatflow.mapper.UserMapper;
 import org.example.chatflow.model.entity.FriendRelation;
@@ -22,7 +23,9 @@ public class FriendRelationRepositoryImpl extends BaseRepositoryImpl<FriendRelat
 
     @Override
     public List<FriendRelation> getFriendRelationByUserId(Long userId) {
-        return lambdaQuery().eq(FriendRelation::getUserId, userId).list();
+        return lambdaQuery().eq(FriendRelation::getUserId, userId)
+                .eq(FriendRelation::getDeleted, Deleted.HAS_NOT_DELETED.getCode())
+                .list();
     }
 
     @Override

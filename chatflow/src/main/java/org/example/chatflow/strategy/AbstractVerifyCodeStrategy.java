@@ -1,4 +1,4 @@
-package org.example.chatflow.service.verifycode.strategy;
+package org.example.chatflow.strategy;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;

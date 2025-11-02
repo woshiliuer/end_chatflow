@@ -1,10 +1,10 @@
-package org.example.chatflow.service.verifycode;
+package org.example.chatflow.factory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.enums.VerfCodeType;
 import org.example.chatflow.common.exception.BusinessException;
-import org.example.chatflow.service.verifycode.strategy.VerifyCodeStrategy;
+import org.example.chatflow.strategy.VerifyCodeStrategy;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.stereotype.Component;
 

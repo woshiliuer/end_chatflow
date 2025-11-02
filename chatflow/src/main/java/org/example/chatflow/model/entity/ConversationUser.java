@@ -34,4 +34,22 @@ public class ConversationUser extends BaseEntity<Long> {
      */
     @TableField("join_time")
     private Long joinTime;
+
+    /**
+     * 最后已读消息序号
+     */
+    @TableField("last_read_seq")
+    private Long lastReadSeq;
+
+    /**
+     * 最后已读时间（毫秒时间戳）
+     */
+    @TableField("last_read_time")
+    private Long lastReadTime;
+
+    /**
+     * 是否常用会话：0 否 1 是
+     */
+    @TableField("is_common")
+    private Integer isCommon;
 }
