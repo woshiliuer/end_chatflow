@@ -12,4 +12,9 @@ import org.springframework.stereotype.Repository;
 public class ConversationRepositoryImpl
         extends BaseRepositoryImpl<ConversationMapper, Conversation, Long>
         implements ConversationRepository {
+
+    @Override
+    public Conversation findByGroupId(Long groupId) {
+        throw new UnsupportedOperationException("ConversationRepository#findByGroupId not implemented yet");
+    }
 }

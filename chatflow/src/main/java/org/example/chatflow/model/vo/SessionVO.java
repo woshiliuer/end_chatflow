@@ -39,22 +39,17 @@ public class SessionVO {
     @Schema(description = "会话状态：1正常 2隐藏 3常用")
     private int status;
 
-    @Schema(description = "对方用户ID（仅私聊时有值）")
-    private Long targetUserId;
+    @Schema(description = "会话类型： 1单聊 2群聊")
+    private Integer conversationType;
+
+    @Schema
 
     @Mapper
     public interface SessionVOMapper{
         SessionVO.SessionVOMapper INSTANCE = Mappers.getMapper(SessionVOMapper.class);
 
         @Mapping(source = "conversation.id", target = "id")
-        @Mapping(source = "message.id", target = "lastMessageId")
-        @Mapping(source = "message.content", target = "content")
-        @Mapping(source = "message.sendTime", target = "sendTime")
-        @Mapping(source = "unreadCount", target = "unreadCount")
-        @Mapping(source = "status", target = "status")
-        @Mapping(target = "displayName", ignore = true)
-        @Mapping(target = "avatarFullUrl", ignore = true)
-        @Mapping(target = "targetUserId", ignore = true)
+        @Mapping(source = "status",target = "status")
         SessionVO toVO(Conversation conversation, Message message, int unreadCount, int status);
     }
 }

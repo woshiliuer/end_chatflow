@@ -23,6 +23,7 @@ import org.example.chatflow.model.entity.ChatGroup;
 import org.example.chatflow.model.entity.Conversation;
 import org.example.chatflow.model.entity.ConversationUser;
 import org.example.chatflow.model.entity.User;
+import org.example.chatflow.model.vo.GroupDetailVO;
 import org.example.chatflow.model.vo.GroupListTotalVO;
 import org.example.chatflow.model.vo.GroupListVO;
 import org.example.chatflow.repository.*;
@@ -154,6 +155,11 @@ public class GroupServiceImpl implements GroupService {
         totalVO.setTotal(groupList.size());
 
         return CurlResponse.success(Collections.singletonList(totalVO));
+    }
+
+    @Override
+    public CurlResponse<GroupDetailVO> groupDetail(Long groupId) {
+        throw new UnsupportedOperationException("GroupService#groupDetail not implemented yet");
     }
 
     private ConversationUser buildConversationUser(Long conversationId, Long memberId, GroupRole role) {
