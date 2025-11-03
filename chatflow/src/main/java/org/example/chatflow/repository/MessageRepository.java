@@ -23,4 +23,12 @@ public interface MessageRepository extends BaseRepository<Message, Long> {
      * @param conversationId 会话ID
      */
     void deleteByConversationId(Long conversationId);
+    
+    /**
+     * 获取会话中的最新消息序号
+     *
+     * @param conversationId 会话ID
+     * @return 最新序号，如果没有消息则返回0
+     */
+    Long getMaxSequenceByConversationId(Long conversationId);
 }

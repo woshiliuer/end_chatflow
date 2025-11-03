@@ -39,8 +39,11 @@ public enum ErrorCode {
     ALREADY_FRIEND_RELATION("1027","已经是好友关系了"),
     CONVERSATION_RELATION_NOT_EXISTS("1028","会话关系不存在"),
     CONVERSATION_USER_UPDATE_FAIL("1029","更新会话关系失败"),
-    CONVERSATION_USER_DELETE_FAIL("1030","删除会话关系失败")
-    ;
+    CONVERSATION_USER_DELETE_FAIL("1030","删除会话关系失败"),
+    SENDER_NOT_EXISTS("1031", "消息发送方不存在"),
+    CONVERSATION_NOT_FOUND("1032", "会话不存在"),
+    USER_NOT_FOUND("1033", "用户不存在"),
+    CONVERSATION_USER_NOT_FOUND("1034", "会话参与者不存在");
 
     private final String code;
     private final String message;

@@ -155,7 +155,7 @@ public class FriendServiceImpl implements FriendService {
         // 我发出的申请
         for (FriendRequest friendRequest : outGoIn) {
             User receiver = friendMap.get(friendRequest.getReceiverId());
-            FriendRequestListVO vo = buildReqiestListVO(receiver, friendRequest, ApplyDirection.OUTGOING);
+            FriendRequestListVO vo = buildReqiestListVO(receiver, friendRequest, Direction.USER_TO_FRIEND);
             if (vo != null) {
                 if (vo.getRequestStatus().equals(RequestStatus.PENDING.getCode()))
                     pendingCount++;
@@ -168,7 +168,7 @@ public class FriendServiceImpl implements FriendService {
         // 我收到的申请
         for (FriendRequest friendRequest : inComIn) {
             User requester = friendMap.get(friendRequest.getRequesterId());
-            FriendRequestListVO vo = buildReqiestListVO(requester, friendRequest, ApplyDirection.INCOMING);
+            FriendRequestListVO vo = buildReqiestListVO(requester, friendRequest, Direction.FRIEND_TO_USER);
             if (vo != null) {
                 if (vo.getRequestStatus().equals(RequestStatus.PENDING.getCode()))
                     pendingCount++;
@@ -182,7 +182,7 @@ public class FriendServiceImpl implements FriendService {
         return CurlResponse.success(vo);
     }
 
-    private FriendRequestListVO buildReqiestListVO(User user, FriendRequest friendRequest, ApplyDirection direction) {
+    private FriendRequestListVO buildReqiestListVO(User user, FriendRequest friendRequest, Direction direction) {
         if (user == null || friendRequest == null) {
             return null;
         }

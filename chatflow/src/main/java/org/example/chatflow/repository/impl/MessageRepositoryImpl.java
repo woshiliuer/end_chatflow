@@ -37,4 +37,17 @@ public class MessageRepositoryImpl
             .eq(Message::getConversationId, conversationId)
             .remove();
     }
+    
+    @Override
+    public Long getMaxSequenceByConversationId(Long conversationId) {
+        if (conversationId == null) {
+            return 0L;
+        }
+        Message message = lambdaQuery()
+            .eq(Message::getConversationId, conversationId)
+            .orderByDesc(Message::getSequence)
+            .last("LIMIT 1")
+            .one();
+        return message != null ? message.getSequence() : 0L;
+    }
 }

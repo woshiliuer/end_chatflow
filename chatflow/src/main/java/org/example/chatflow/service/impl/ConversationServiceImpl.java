@@ -192,6 +192,7 @@ public class ConversationServiceImpl implements ConversationService {
                 if (partner != null) {
                     sessionVO.setDisplayName(partner.getNickname());
                     sessionVO.setAvatarFullUrl(OssConstant.buildFullUrl(partner.getAvatarUrl()));
+                    sessionVO.setTargetUserId(partner.getId());
                 }
             } else if (ConversationType.GROUP.getCode().equals(conversation.getConversationType())) {
                 ChatGroup chatGroup = groupConversationMap.get(conversation.getId());
