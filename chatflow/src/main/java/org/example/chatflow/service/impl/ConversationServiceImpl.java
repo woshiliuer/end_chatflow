@@ -190,12 +190,14 @@ public class ConversationServiceImpl implements ConversationService {
             if (ConversationType.PRIVATE.getCode().equals(conversation.getConversationType())) {
                 User partner = privateConversationUserMap.get(conversation.getId());
                 if (partner != null) {
+                    sessionVO.setRelationId(partner.getId());
                     sessionVO.setDisplayName(partner.getNickname());
                     sessionVO.setAvatarFullUrl(OssConstant.buildFullUrl(partner.getAvatarUrl()));
                 }
             } else if (ConversationType.GROUP.getCode().equals(conversation.getConversationType())) {
                 ChatGroup chatGroup = groupConversationMap.get(conversation.getId());
                 if (chatGroup != null) {
+                    sessionVO.setRelationId(chatGroup.getId());
                     sessionVO.setDisplayName(chatGroup.getGroupName());
                     sessionVO.setAvatarFullUrl(OssConstant.buildFullUrl(chatGroup.getGroupAvatarUrl()));
                 }

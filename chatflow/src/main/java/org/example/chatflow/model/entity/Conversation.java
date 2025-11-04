@@ -35,4 +35,10 @@ public class Conversation extends BaseEntity<Long> {
      */
     @TableField("last_message_time")
     private Long lastMessageTime;
+
+    /**
+     * 逻辑删除
+     */
+    @TableField("deleted")
+    private Integer deleted;
 }

@@ -42,7 +42,7 @@ public class GroupController {
     }
 
     @Operation(description = "群聊详情")
-    @GetMapping("/detail")
+    @PostMapping("/groupDetail")
     public CurlResponse<GroupDetailVO> groupDetail(@RequestBody @Validated Param<Long> param) {
         return groupService.groupDetail(param.getParam());
     }

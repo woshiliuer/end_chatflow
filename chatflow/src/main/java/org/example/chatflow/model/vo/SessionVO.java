@@ -15,8 +15,11 @@ import org.mapstruct.factory.Mappers;
 @Data
 @Schema(description = "会话列表")
 public class SessionVO {
-    @Schema(description = "好友id/群聊id")
+    @Schema(description = "会话id")
     private Long id;
+
+    @Schema(description = "关联对象ID--好友id/群聊id")
+    private Long relationId;
 
     @Schema(description = "显示名称（好友备注或群聊名称）")
     private String displayName;
@@ -48,7 +51,7 @@ public class SessionVO {
     public interface SessionVOMapper{
         SessionVO.SessionVOMapper INSTANCE = Mappers.getMapper(SessionVOMapper.class);
 
-        @Mapping(source = "conversation.id", target = "id")
+        @Mapping(source ="conversation.id", target = "id")
         @Mapping(source = "status",target = "status")
         SessionVO toVO(Conversation conversation, Message message, int unreadCount, int status);
     }

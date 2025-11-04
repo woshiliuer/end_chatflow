@@ -1,5 +1,6 @@
 package org.example.chatflow.repository.impl;
 
+import org.example.chatflow.common.enums.Deleted;
 import org.example.chatflow.mapper.ConversationMapper;
 import org.example.chatflow.model.entity.Conversation;
 import org.example.chatflow.repository.ConversationRepository;
@@ -15,6 +16,9 @@ public class ConversationRepositoryImpl
 
     @Override
     public Conversation findByGroupId(Long groupId) {
-        throw new UnsupportedOperationException("ConversationRepository#findByGroupId not implemented yet");
+        return lambdaQuery()
+                .eq(Conversation::getGroupId, groupId)
+                .eq(Conversation::getDeleted, Deleted.HAS_NOT_DELETED.getCode())
+                .one();
     }
 }

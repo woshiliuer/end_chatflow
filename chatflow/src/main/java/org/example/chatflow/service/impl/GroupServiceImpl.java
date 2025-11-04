@@ -26,6 +26,7 @@ import org.example.chatflow.model.entity.User;
 import org.example.chatflow.model.vo.GroupDetailVO;
 import org.example.chatflow.model.vo.GroupListTotalVO;
 import org.example.chatflow.model.vo.GroupListVO;
+import org.example.chatflow.model.vo.GroupMemberVO;
 import org.example.chatflow.repository.*;
 import org.example.chatflow.service.GroupService;
 import org.example.chatflow.support.CurrentUserAccessor;
@@ -141,7 +142,7 @@ public class GroupServiceImpl implements GroupService {
             .map(Conversation::getGroupId)
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        List<ChatGroup> chatGroups = chatGroupRepository.findByIds(groupIds);
+        List<ChatGroup> chatGroups = chatGroupRepository.findNormalByIds(groupIds);
         Map<Long, ChatGroup> groupById = chatGroups.stream()
             .collect(Collectors.toMap(ChatGroup::getId, Function.identity()));
 
@@ -159,7 +160,37 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public CurlResponse<GroupDetailVO> groupDetail(Long groupId) {
-        throw new UnsupportedOperationException("GroupService#groupDetail not implemented yet");
+        ChatGroup group = chatGroupRepository.findNormalById(groupId);
+        VerifyUtil.isTrue(group == null,ErrorCode.GROUP_NOT_EXISTS);
+        GroupDetailVO vo = GroupDetailVO.GroupDetailVOMapper.INSTANCE.toVO(group);
+        //根据群聊id查询群聊会话
+        Conversation conversation = conversationRepository.findByGroupId(groupId);
+        VerifyUtil.isTrue(conversation == null,ErrorCode.CONVERSATION_NOT_FOUND);
+        //根据会话id查询所有的成员
+        List<ConversationUser> conversationUserList = conversationUserRepository
+                .findByConversationIds(Collections.singleton(conversation.getId()));
+        
+        // 按照memberId分组，建立memberId到角色的映射关系
+        Map<Long, Integer> roleByMemberId = conversationUserList.stream()
+                .collect(Collectors.toMap(ConversationUser::getMemberId, ConversationUser::getRole, (left, right) -> left));
+
+        Set<Long> memberIdList = conversationUserList.stream()
+                .map(ConversationUser::getMemberId).collect(Collectors.toSet());
+        List<User> memberList = userRepository.findExistByIds(memberIdList);
+        List<GroupMemberVO> groupMemberVOList = new ArrayList<>();
+        for (User member : memberList) {
+            GroupMemberVO groupMemberVO = new GroupMemberVO();
+            groupMemberVO.setMemberId(member.getId());
+            groupMemberVO.setNickname(member.getNickname());
+            // 从映射中获取该成员的角色，默认为普通成员
+            groupMemberVO.setRole(roleByMemberId.get(member.getId()));
+            groupMemberVO.setAvatarFullUrl(OssConstant.buildFullUrl(member.getAvatarUrl()));
+            groupMemberVOList.add(groupMemberVO);
+        }
+
+        vo.setMembers(groupMemberVOList);
+
+        return CurlResponse.success(vo);
     }
 
     private ConversationUser buildConversationUser(Long conversationId, Long memberId, GroupRole role) {

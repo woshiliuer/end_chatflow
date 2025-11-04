@@ -40,6 +40,12 @@ public class ChatGroup extends BaseEntity<Long> {
     private Long ownerId;
 
     /**
+     * 群状态（1正常 2解散）
+     */
+    @TableField("status")
+    private Integer status;
+
+    /**
      * 是否删除：0 未删除 1 已删除
      */
     @TableField("deleted")

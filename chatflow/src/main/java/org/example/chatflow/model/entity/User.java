@@ -47,4 +47,10 @@ public class User extends BaseEntity<Long> {
      */
     @TableField(value = "gender")
     private Integer gender;
+
+    /**
+     * 逻辑删除
+     */
+    @TableField(value = "deleted")
+    private Integer deleted;
 }

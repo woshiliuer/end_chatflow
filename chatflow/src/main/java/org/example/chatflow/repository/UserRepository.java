@@ -2,8 +2,8 @@ package org.example.chatflow.repository;
 
 import org.example.chatflow.model.entity.User;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -16,4 +16,6 @@ public interface UserRepository extends BaseRepository<User, Long> {
     boolean existsByEmail(String email);
 
     Map<Long, User> getUsersMapByIds(Set<Long> allFriendIds);
+
+    List<User> findExistByIds(Set<Long> memberIdList);
 }
