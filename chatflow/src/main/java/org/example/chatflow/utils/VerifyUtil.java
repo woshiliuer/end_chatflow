@@ -57,4 +57,10 @@ public class VerifyUtil {
             throw new BusinessException(errorEnum);
         }
     }
+
+    public static void ensureOperationSucceeded(boolean flag, String message) {
+        if (!flag) {
+            throw new BusinessException(message);
+        }
+    }
 }

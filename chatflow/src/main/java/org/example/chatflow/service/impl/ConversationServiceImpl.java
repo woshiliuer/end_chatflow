@@ -191,9 +191,8 @@ public class ConversationServiceImpl implements ConversationService {
         VerifyUtil.ensureOperationSucceeded(conversationRepository.save(conversation),
                 ErrorCode.CONVERSATION_SAVE_FAIL);
 
-        long joinTime = System.currentTimeMillis() / 1000;
-        ConversationUser requesterRelation = buildConversationUser(conversation.getId(), userId, joinTime, GroupRole.MEMBER);
-        ConversationUser friendRelation = buildConversationUser(conversation.getId(), friendId, joinTime, GroupRole.MEMBER);
+        ConversationUser requesterRelation = buildConversationUser(conversation.getId(), userId);
+        ConversationUser friendRelation = buildConversationUser(conversation.getId(), friendId);
 
         VerifyUtil.ensureOperationSucceeded(
                 conversationUserRepository.saveBatch(List.of(requesterRelation, friendRelation)),
@@ -272,12 +271,10 @@ public class ConversationServiceImpl implements ConversationService {
         return CurlResponse.success(conversationId);
     }
 
-    private ConversationUser buildConversationUser(Long conversationId, Long memberId, long joinTime, GroupRole role) {
+    private ConversationUser buildConversationUser(Long conversationId, Long memberId) {
         ConversationUser conversationUser = new ConversationUser();
         conversationUser.setConversationId(conversationId);
         conversationUser.setMemberId(memberId);
-        conversationUser.setRole(role.getCode());
-        conversationUser.setJoinTime(joinTime);
         conversationUser.setStatus(ConversationStatus.NORMAL.getCode());
         return conversationUser;
     }

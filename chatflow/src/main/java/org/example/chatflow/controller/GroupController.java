@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.model.dto.group.AddGroupDTO;
+import org.example.chatflow.model.dto.group.EditGroupDTO;
+import org.example.chatflow.model.dto.group.InviteGroupMemberDTO;
+import org.example.chatflow.model.dto.group.RemoveGroupMemberDTO;
 import org.example.chatflow.model.vo.GroupListTotalVO;
 import org.example.chatflow.model.vo.GroupDetailVO;
 import org.example.chatflow.service.GroupService;
@@ -53,5 +56,22 @@ public class GroupController {
         return groupService.dissolveGroup(param.getParam());
     }
 
+    @Operation(description = "编辑群聊")
+    @PostMapping("/edit")
+    public CurlResponse<String> edit(@RequestBody @Validated EditGroupDTO dto) {
+        return groupService.editGroup(dto);
+    }
+
+    @Operation(description = "移除群成员")
+    @PostMapping("/removeMembers")
+    public CurlResponse<String> removeMembers(@RequestBody @Validated RemoveGroupMemberDTO dto) {
+        return groupService.removeMembers(dto);
+    }
+
+    @Operation(description = "邀请新成员")
+    @PostMapping("/inviteMembers")
+    public CurlResponse<String> inviteMembers(@RequestBody @Validated InviteGroupMemberDTO dto) {
+        return groupService.inviteMembers(dto);
+    }
 
 }

@@ -28,6 +28,12 @@ public class ChatGroup extends BaseEntity<Long> {
     private String groupAvatarUrl;
 
     /**
+     * 群简介
+     */
+    @TableField("introduction")
+    private String introduction;
+
+    /**
      * 群公告
      */
     @TableField("announcement")
@@ -51,4 +57,3 @@ public class ChatGroup extends BaseEntity<Long> {
     @TableField("deleted")
     private Integer deleted;
 }
-

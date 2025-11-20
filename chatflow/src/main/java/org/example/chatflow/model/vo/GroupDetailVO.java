@@ -23,6 +23,12 @@ public class GroupDetailVO {
     @Schema(description = "群聊公告")
     private String announcement;
 
+    @Schema(description = "群简介")
+    private String introduction;
+
+    @Schema(description = "群成员数量（正常状态）")
+    private Integer memberCount;
+
     @Schema(description = "群成员列表")
     private List<GroupMemberVO> members;
 

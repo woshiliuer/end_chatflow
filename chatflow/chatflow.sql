@@ -103,10 +103,10 @@ INSERT INTO `conversation_user` VALUES (16, 8, 2, 1, 1719900510, 1, 2, 171990068
 INSERT INTO `conversation_user` VALUES (17, 8, 3, 1, 1719900520, 1, 1, 1719900620, 1, 'System', 1719900520, NULL, NULL, NULL);
 
 -- ----------------------------
--- Table structure for chat_group_member
+-- Table structure for chat_group_user
 -- ----------------------------
-DROP TABLE IF EXISTS `chat_group_member`;
-CREATE TABLE `chat_group_member`  (
+DROP TABLE IF EXISTS `chat_group_user`;
+CREATE TABLE `chat_group_user`  (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `group_id` bigint NOT NULL COMMENT '群聊ID',
   `member_id` bigint NOT NULL COMMENT '成员用户ID',

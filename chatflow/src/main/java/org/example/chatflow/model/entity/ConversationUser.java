@@ -24,18 +24,6 @@ public class ConversationUser extends BaseEntity<Long> {
     private Long memberId;
 
     /**
-     * 角色：1普通成员 2管理员 3群主
-     */
-    @TableField("role")
-    private Integer role;
-
-    /**
-     * 加入时间
-     */
-    @TableField("join_time")
-    private Long joinTime;
-
-    /**
      * 最后已读消息序号
      */
     @TableField("last_read_seq")
