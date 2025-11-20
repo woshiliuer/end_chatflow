@@ -12,13 +12,16 @@ import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
 import org.example.chatflow.model.entity.FriendRelation;
 import org.example.chatflow.model.entity.FriendRequest;
 import org.example.chatflow.model.entity.User;
+import org.example.chatflow.model.entity.ConversationUser;
 import org.example.chatflow.model.vo.FriendDetailVO;
 import org.example.chatflow.model.vo.FriendRequestListTotalVO;
 import org.example.chatflow.model.vo.FriendRequestListVO;
 import org.example.chatflow.model.vo.GetFriendListVO;
+import org.example.chatflow.repository.ConversationUserRepository;
 import org.example.chatflow.repository.FriendRelationRepository;
 import org.example.chatflow.repository.FriendRequestRepository;
 import org.example.chatflow.repository.UserRepository;
+import org.example.chatflow.service.ConversationService;
 import org.example.chatflow.service.FriendService;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.ThreadLocalUtil;
@@ -43,6 +46,10 @@ public class FriendServiceImpl implements FriendService {
     private final UserRepository userRepository;
 
     private final FriendRequestRepository friendRequestRepository;
+
+    private final ConversationService conversationService;
+
+    private final ConversationUserRepository conversationUserRepository;
 
     private final CurrentUserAccessor currentUserAccessor;
 
@@ -107,6 +114,7 @@ public class FriendServiceImpl implements FriendService {
                 VerifyUtil.ensureOperationSucceeded(friendRelationRepository.update(userToFriend),ErrorCode.AGREE_FRIEND_FAIL);
                 friendRequest.setRequestStatus(RequestStatus.APPROVED.getCode());
                 friendRequest.setHandledAt(System.currentTimeMillis()/1000);
+                conversationService.ensurePrivateConversation(userId, friend.getId());
                 return CurlResponse.success("好友添加成功");
             }
         }
@@ -132,6 +140,7 @@ public class FriendServiceImpl implements FriendService {
         userToFriend.setDeleted(Deleted.HAS_DELETED.getCode());
         //删除好友关系
         VerifyUtil.ensureOperationSucceeded(friendRelationRepository.update(userToFriend),ErrorCode.DELETE_FRIEND_FAIL);
+        hideConversationForUser(user.getId(), friend.getId());
         return CurlResponse.success("删除成功");
     }
 
@@ -237,6 +246,7 @@ public class FriendServiceImpl implements FriendService {
         request.setRequestStatus(RequestStatus.APPROVED.getCode());
         request.setHandledAt(System.currentTimeMillis()/1000);
         VerifyUtil.ensureOperationSucceeded(friendRequestRepository.update(request),ErrorCode.AGREE_FRIEND_FAIL);
+        conversationService.ensurePrivateConversation(userId, dto.getFriendId());
         return CurlResponse.success("成功添加好友");
     }
 
@@ -267,6 +277,22 @@ public class FriendServiceImpl implements FriendService {
         VerifyUtil.isTrue(relation == null,ErrorCode.FRIEND_RELATION_NOT_EXISTS);
         friendDetailVO.setRemark(relation.getRemark());
         return CurlResponse.success(friendDetailVO);
+    }
+
+    private void hideConversationForUser(Long userId, Long friendId) {
+        Long conversationId = conversationService.findExistingPrivateConversation(userId, friendId);
+        if (conversationId == null) {
+            return;
+        }
+        ConversationUser relation = conversationUserRepository.findByConversationIdAndMemberId(conversationId, userId);
+        if (relation == null) {
+            return;
+        }
+        if (!Objects.equals(relation.getStatus(), ConversationStatus.HIDDEN.getCode())) {
+            relation.setStatus(ConversationStatus.HIDDEN.getCode());
+            VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(relation),
+                    ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+        }
     }
 
     private FriendRequest checkFriendRequestNotExists(Long userId, Long friendId) {

@@ -48,4 +48,16 @@ public class ConversationController {
         return conversationService.deleteConversation(param.getParam());
     }
 
+    @Operation(summary = "恢复隐藏会话(按群聊Id)")
+    @PostMapping("/restoreByGroup")
+    public CurlResponse<Long> restoreByGroup(@RequestBody @Validated Param<Long> param) {
+        return conversationService.restoreByGroup(param.getParam());
+    }
+
+    @Operation(summary = "恢复隐藏会话(按好友Id)")
+    @PostMapping("/restoreByFriend")
+    public CurlResponse<Long> restoreByFriend(@RequestBody @Validated Param<Long> param) {
+        return conversationService.restoreByFriend(param.getParam());
+    }
+
 }

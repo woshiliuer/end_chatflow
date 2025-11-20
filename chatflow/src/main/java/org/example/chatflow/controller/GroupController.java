@@ -47,5 +47,11 @@ public class GroupController {
         return groupService.groupDetail(param.getParam());
     }
 
+    @Operation(description = "解散群聊")
+    @PostMapping("/dissolve")
+    public CurlResponse<String> dissolve(@RequestBody @Validated Param<Long> param) {
+        return groupService.dissolveGroup(param.getParam());
+    }
+
 
 }

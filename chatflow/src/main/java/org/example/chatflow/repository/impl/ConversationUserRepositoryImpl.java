@@ -30,6 +30,16 @@ public class ConversationUserRepositoryImpl
     }
 
     @Override
+    public List<ConversationUser> findAllByMemberId(Long memberId) {
+        if (memberId == null) {
+            return Collections.emptyList();
+        }
+        return lambdaQuery()
+            .eq(ConversationUser::getMemberId, memberId)
+            .list();
+    }
+
+    @Override
     public List<ConversationUser> findByConversationIds(Collection<Long> conversationIds) {
         if (conversationIds == null || conversationIds.isEmpty()) {
             return Collections.emptyList();

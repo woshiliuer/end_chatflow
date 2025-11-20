@@ -103,6 +103,28 @@ INSERT INTO `conversation_user` VALUES (16, 8, 2, 1, 1719900510, 1, 2, 171990068
 INSERT INTO `conversation_user` VALUES (17, 8, 3, 1, 1719900520, 1, 1, 1719900620, 1, 'System', 1719900520, NULL, NULL, NULL);
 
 -- ----------------------------
+-- Table structure for chat_group_member
+-- ----------------------------
+DROP TABLE IF EXISTS `chat_group_member`;
+CREATE TABLE `chat_group_member`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `group_id` bigint NOT NULL COMMENT '群聊ID',
+  `member_id` bigint NOT NULL COMMENT '成员用户ID',
+  `role` tinyint NOT NULL DEFAULT 1 COMMENT '角色：1成员 2管理员 3群主',
+  `join_time` bigint NOT NULL COMMENT '加入时间（秒时间戳）',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1正常 2已退出/移除',
+  `create_user_id` bigint NOT NULL COMMENT '创建人ID',
+  `create_by` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '创建人名称',
+  `create_time` bigint NOT NULL COMMENT '创建时间',
+  `update_user_id` bigint NULL DEFAULT NULL COMMENT '更新人ID',
+  `update_by` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '更新人名称',
+  `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_group_member`(`group_id` ASC, `member_id` ASC) USING BTREE,
+  INDEX `idx_member_id`(`member_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '群聊成员关系表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for friend_relation
 -- ----------------------------
 DROP TABLE IF EXISTS `friend_relation`;

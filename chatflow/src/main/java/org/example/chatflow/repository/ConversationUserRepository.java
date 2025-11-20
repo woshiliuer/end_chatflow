@@ -18,6 +18,14 @@ public interface ConversationUserRepository extends BaseRepository<ConversationU
     List<ConversationUser> findByMemberId(Long memberId);
 
     /**
+     * 查询指定成员的全部会话关系（包含隐藏/收藏等状态）
+     *
+     * @param memberId 成员ID
+     * @return 会话关系列表
+     */
+    List<ConversationUser> findAllByMemberId(Long memberId);
+
+    /**
      * 根据会话ID集合查询成员关系
      *
      * @param conversationIds 会话ID集合

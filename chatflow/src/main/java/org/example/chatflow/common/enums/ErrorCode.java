@@ -44,7 +44,8 @@ public enum ErrorCode {
     CONVERSATION_NOT_FOUND("1032", "会话不存在"),
     USER_NOT_FOUND("1033", "用户不存在"),
     CONVERSATION_USER_NOT_FOUND("1034", "会话参与者不存在"),
-    GROUP_NOT_EXISTS("1035", "群聊不存在")
+    GROUP_NOT_EXISTS("1035", "群聊不存在"),
+    CONVERSATION_SELF_NOT_ALLOWED("1036", "不能和自己创建会话")
     ;
 
     private final String code;

@@ -17,6 +17,7 @@ import org.example.chatflow.common.enums.ConversationStatus;
 import org.example.chatflow.common.enums.ConversationType;
 import org.example.chatflow.common.enums.Deleted;
 import org.example.chatflow.common.enums.ErrorCode;
+import org.example.chatflow.common.enums.ChatGroupStatus;
 import org.example.chatflow.common.enums.GroupRole;
 import org.example.chatflow.model.dto.group.AddGroupDTO;
 import org.example.chatflow.model.entity.ChatGroup;
@@ -191,6 +192,34 @@ public class GroupServiceImpl implements GroupService {
         vo.setMembers(groupMemberVOList);
 
         return CurlResponse.success(vo);
+    }
+
+    /**
+     * 解散群聊：更新群状态，并将群主的会话关系标记为隐藏
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CurlResponse<String> dissolveGroup(Long groupId) {
+        User user = checkUserIsExists();
+        ChatGroup group = chatGroupRepository.findNormalById(groupId);
+        VerifyUtil.isTrue(group == null,ErrorCode.GROUP_NOT_EXISTS);
+        VerifyUtil.isTrue(!Objects.equals(group.getOwnerId(), user.getId()), ErrorCode.UNAUTHORIZED);
+
+        group.setStatus(ChatGroupStatus.DISSOLVED.getCode());
+        VerifyUtil.ensureOperationSucceeded(chatGroupRepository.update(group), ErrorCode.GROUP_SAVE_FAIL);
+
+        Conversation conversation = conversationRepository.findByGroupId(groupId);
+        if (conversation != null) {
+            ConversationUser ownerRelation = conversationUserRepository
+                    .findByConversationIdAndMemberId(conversation.getId(), user.getId());
+            if (ownerRelation != null &&
+                    !Objects.equals(ownerRelation.getStatus(), ConversationStatus.HIDDEN.getCode())) {
+                ownerRelation.setStatus(ConversationStatus.HIDDEN.getCode());
+                VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(ownerRelation),
+                        ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+            }
+        }
+        return CurlResponse.success("群聊解散成功");
     }
 
     private ConversationUser buildConversationUser(Long conversationId, Long memberId, GroupRole role) {

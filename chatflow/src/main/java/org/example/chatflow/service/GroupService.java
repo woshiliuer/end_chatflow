@@ -16,4 +16,11 @@ public interface GroupService {
     CurlResponse<List<GroupListTotalVO>> groupList();
 
     CurlResponse<GroupDetailVO> groupDetail(Long groupId);
+
+    /**
+     * 解散群聊
+     * @param groupId 群聊ID
+     * @return 操作结果
+     */
+    CurlResponse<String> dissolveGroup(Long groupId);
 }

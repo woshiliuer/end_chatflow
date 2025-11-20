@@ -14,18 +14,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
-import org.example.chatflow.common.enums.ConversationType;
 import org.example.chatflow.common.enums.ConversationStatus;
+import org.example.chatflow.common.enums.ConversationType;
+import org.example.chatflow.common.enums.Deleted;
 import org.example.chatflow.common.enums.ErrorCode;
+import org.example.chatflow.common.enums.GroupRole;
 import org.example.chatflow.model.entity.ChatGroup;
 import org.example.chatflow.model.entity.Conversation;
 import org.example.chatflow.model.entity.ConversationUser;
+import org.example.chatflow.model.entity.FriendRelation;
 import org.example.chatflow.model.entity.Message;
 import org.example.chatflow.model.entity.User;
 import org.example.chatflow.model.vo.SessionVO;
 import org.example.chatflow.repository.ChatGroupRepository;
 import org.example.chatflow.repository.ConversationRepository;
 import org.example.chatflow.repository.ConversationUserRepository;
+import org.example.chatflow.repository.FriendRelationRepository;
 import org.example.chatflow.repository.MessageRepository;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.ConversationService;
@@ -33,6 +37,7 @@ import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author by zzr
@@ -45,6 +50,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
     private final ConversationUserRepository conversationUserRepository;
     private final UserRepository userRepository;
+    private final FriendRelationRepository friendRelationRepository;
     private final ChatGroupRepository chatGroupRepository;
     private final MessageRepository messageRepository;
     private final CurrentUserAccessor currentUserAccessor;
@@ -155,6 +161,134 @@ public class ConversationServiceImpl implements ConversationService {
                     ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
         }
         return CurlResponse.success("删除成功");
+    }
+
+    /**
+     * 新增或恢复单聊会话（基于好友关系）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long ensurePrivateConversation(Long userId, Long friendId) {
+
+        VerifyUtil.isTrue(Objects.equals(userId, friendId), ErrorCode.CONVERSATION_SELF_NOT_ALLOWED);
+
+        User requester = userRepository.findById(userId).orElse(null);
+        VerifyUtil.isTrue(requester == null, ErrorCode.USER_NOT_EXISTS);
+        User friend = userRepository.findById(friendId).orElse(null);
+        VerifyUtil.isTrue(friend == null, ErrorCode.USER_NOT_EXISTS);
+
+        verifyFriendRelation(userId, friendId);
+
+        Long existedConversationId = findExistingPrivateConversation(userId, friendId);
+        if (existedConversationId != null) {
+            restoreConversationStatus(existedConversationId, userId);
+            restoreConversationStatus(existedConversationId, friendId);
+            return existedConversationId;
+        }
+
+        Conversation conversation = new Conversation();
+        conversation.setConversationType(ConversationType.PRIVATE.getCode());
+        VerifyUtil.ensureOperationSucceeded(conversationRepository.save(conversation),
+                ErrorCode.CONVERSATION_SAVE_FAIL);
+
+        long joinTime = System.currentTimeMillis() / 1000;
+        ConversationUser requesterRelation = buildConversationUser(conversation.getId(), userId, joinTime, GroupRole.MEMBER);
+        ConversationUser friendRelation = buildConversationUser(conversation.getId(), friendId, joinTime, GroupRole.MEMBER);
+
+        VerifyUtil.ensureOperationSucceeded(
+                conversationUserRepository.saveBatch(List.of(requesterRelation, friendRelation)),
+                ErrorCode.CONVERSATION_USER_SAVE_FAIL
+        );
+
+        return conversation.getId();
+    }
+
+    private void verifyFriendRelation(Long userId, Long friendId) {
+        FriendRelation relation = friendRelationRepository.findByUserAndFriendId(userId, friendId);
+        FriendRelation reverseRelation = friendRelationRepository.findByUserAndFriendId(friendId, userId);
+        boolean validRelation = relation != null && !Objects.equals(relation.getDeleted(), Deleted.HAS_DELETED.getCode())
+            && reverseRelation != null && !Objects.equals(reverseRelation.getDeleted(), Deleted.HAS_DELETED.getCode());
+        VerifyUtil.isFalse(validRelation, ErrorCode.FRIEND_RELATION_NOT_EXISTS);
+    }
+
+    @Override
+    public Long findExistingPrivateConversation(Long userId, Long friendId) {
+        List<ConversationUser> relations = conversationUserRepository.findAllByMemberId(userId);
+        if (relations == null || relations.isEmpty()) {
+            return null;
+        }
+        Set<Long> conversationIds = relations.stream()
+                .map(ConversationUser::getConversationId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (conversationIds.isEmpty()) {
+            return null;
+        }
+        List<Conversation> conversations = conversationRepository.findByIds(conversationIds);
+        Set<Long> privateConversationIds = conversations.stream()
+                .filter(conversation -> Objects.equals(conversation.getConversationType(), ConversationType.PRIVATE.getCode()))
+                .map(Conversation::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (privateConversationIds.isEmpty()) {
+            return null;
+        }
+        for (Long conversationId : privateConversationIds) {
+            ConversationUser friendRelation = conversationUserRepository.findByConversationIdAndMemberId(conversationId, friendId);
+            if (friendRelation != null) {
+                return conversationId;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public CurlResponse<Long> restoreByGroup(Long groupId) {
+        User user = currentUserAccessor.getCurrentUser();
+        Conversation conversation = conversationRepository.findByGroupId(groupId);
+        VerifyUtil.isTrue(conversation == null, ErrorCode.CONVERSATION_NOT_FOUND);
+        ConversationUser relation = conversationUserRepository.findByConversationIdAndMemberId(conversation.getId(), user.getId());
+        VerifyUtil.isTrue(relation == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
+        if (Objects.equals(relation.getStatus(), ConversationStatus.HIDDEN.getCode())) {
+            relation.setStatus(ConversationStatus.NORMAL.getCode());
+            VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(relation),
+                    ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+        }
+        return CurlResponse.success(conversation.getId());
+    }
+
+    @Override
+    public CurlResponse<Long> restoreByFriend(Long friendId) {
+        User user = currentUserAccessor.getCurrentUser();
+        Long conversationId = findExistingPrivateConversation(user.getId(), friendId);
+        VerifyUtil.isTrue(conversationId == null, ErrorCode.CONVERSATION_NOT_FOUND);
+        ConversationUser relation = conversationUserRepository.findByConversationIdAndMemberId(conversationId, user.getId());
+        VerifyUtil.isTrue(relation == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
+        if (Objects.equals(relation.getStatus(), ConversationStatus.HIDDEN.getCode())) {
+            relation.setStatus(ConversationStatus.NORMAL.getCode());
+            VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(relation),
+                    ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+        }
+        return CurlResponse.success(conversationId);
+    }
+
+    private ConversationUser buildConversationUser(Long conversationId, Long memberId, long joinTime, GroupRole role) {
+        ConversationUser conversationUser = new ConversationUser();
+        conversationUser.setConversationId(conversationId);
+        conversationUser.setMemberId(memberId);
+        conversationUser.setRole(role.getCode());
+        conversationUser.setJoinTime(joinTime);
+        conversationUser.setStatus(ConversationStatus.NORMAL.getCode());
+        return conversationUser;
+    }
+
+    private void restoreConversationStatus(Long conversationId, Long memberId) {
+        ConversationUser relation = conversationUserRepository.findByConversationIdAndMemberId(conversationId, memberId);
+        if (relation != null && Objects.equals(relation.getStatus(), ConversationStatus.HIDDEN.getCode())) {
+            relation.setStatus(ConversationStatus.NORMAL.getCode());
+            VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(relation),
+                ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+        }
     }
 
     private ConversationBuckets categorizeConversations(List<Conversation> conversations) {

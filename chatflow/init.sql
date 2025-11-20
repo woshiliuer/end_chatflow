@@ -98,6 +98,26 @@ CREATE TABLE `conversation_user` (
 
 
 
+CREATE TABLE `chat_group_member` (
+                                     `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+                                     `group_id` BIGINT(20) NOT NULL COMMENT '群聊ID',
+                                     `member_id` BIGINT(20) NOT NULL COMMENT '成员用户ID',
+                                     `role` TINYINT NOT NULL DEFAULT 1 COMMENT '角色：1成员 2管理员 3群主',
+                                     `join_time` BIGINT(20) NOT NULL COMMENT '加入时间（秒时间戳）',
+                                     `status` TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1正常 2已退出/移除',
+                                     `create_user_id` BIGINT(20) NOT NULL COMMENT '创建人ID',
+                                     `create_by` VARCHAR(32) NOT NULL COMMENT '创建人名称',
+                                     `create_time` BIGINT(20) NOT NULL COMMENT '创建时间',
+                                     `update_user_id` BIGINT(20) DEFAULT NULL COMMENT '更新人ID',
+                                     `update_by` VARCHAR(32) DEFAULT NULL COMMENT '更新人名称',
+                                     `update_time` BIGINT(20) DEFAULT NULL COMMENT '更新时间',
+                                     PRIMARY KEY (`id`),
+                                     UNIQUE KEY `uk_group_member` (`group_id`, `member_id`),
+                                     KEY `idx_member_id` (`member_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='群聊成员关系表';
+
+
+
 CREATE TABLE `message` (
                            `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
                            `conversation_id` BIGINT(20) NOT NULL COMMENT '所属会话ID',
