@@ -23,6 +23,7 @@ import org.example.chatflow.repository.FriendRequestRepository;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.ConversationService;
 import org.example.chatflow.service.FriendService;
+import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.ThreadLocalUtil;
 import org.example.chatflow.utils.VerifyUtil;
@@ -53,6 +54,8 @@ public class FriendServiceImpl implements FriendService {
 
     private final CurrentUserAccessor currentUserAccessor;
 
+    private final OnlineUserService onlineUserService;
+
     /**
      * 获取好友列表
      */
@@ -77,8 +80,8 @@ public class FriendServiceImpl implements FriendService {
             getFriendListVO.setRemark(StringUtils.isEmpty(friendRelation.getRemark()) ?
                     friendRelation.getRemark() :
                     user.getNickname());
-            //TODO 在线状态填充,先默认都在线
-            getFriendListVO.setStatus(OnlineStatus.ONLINE.getCode());
+            boolean online = onlineUserService.isUserOnline(user.getId());
+            getFriendListVO.setStatus(online ? OnlineStatus.ONLINE.getCode() : OnlineStatus.OFFLINE.getCode());
             getFriendListVOList.add(getFriendListVO);
         }
         return CurlResponse.success(getFriendListVOList);
@@ -276,6 +279,8 @@ public class FriendServiceImpl implements FriendService {
         FriendRelation relation = friendRelationRepository.findByUserAndFriendId(user.getId(),friend.getId());
         VerifyUtil.isTrue(relation == null,ErrorCode.FRIEND_RELATION_NOT_EXISTS);
         friendDetailVO.setRemark(relation.getRemark());
+        boolean online = onlineUserService.isUserOnline(friend.getId());
+        friendDetailVO.setStatus(online ? OnlineStatus.ONLINE.getCode() : OnlineStatus.OFFLINE.getCode());
         return CurlResponse.success(friendDetailVO);
     }
 

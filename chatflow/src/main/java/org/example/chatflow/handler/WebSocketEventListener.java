@@ -89,7 +89,7 @@ public class WebSocketEventListener {
         Long userId = onlineUserService.getUserIdBySessionId(sessionId);
         
         // 记录用户下线
-        onlineUserService.userOffline(sessionId);
+        onlineUserService.userOffline(userId);
         
         log.info("WebSocket断开连接: userId={}, sessionId={}", userId, sessionId);
         

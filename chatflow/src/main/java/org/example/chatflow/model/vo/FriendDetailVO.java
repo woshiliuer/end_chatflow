@@ -30,6 +30,9 @@ public class FriendDetailVO {
     @Schema(description = "个性签名")
     private String signature;
 
+    @Schema(description = "在线状态")
+    private Integer status;
+
     @Mapper
     public interface FriendDetailVOMapper {
         FriendDetailVO.FriendDetailVOMapper INSTANCE = Mappers.getMapper(FriendDetailVO.FriendDetailVOMapper.class);

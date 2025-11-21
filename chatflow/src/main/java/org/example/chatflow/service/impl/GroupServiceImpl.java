@@ -24,6 +24,7 @@ import org.example.chatflow.model.vo.GroupListVO;
 import org.example.chatflow.model.vo.GroupMemberVO;
 import org.example.chatflow.repository.*;
 import org.example.chatflow.service.GroupService;
+import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.VerifyUtil;
 import org.mapstruct.factory.Mappers;
@@ -46,6 +47,7 @@ public class GroupServiceImpl implements GroupService {
     private final FriendRelationRepository friendRelationRepository;
     private final ChatGroupUserRepository chatGroupUserRepository;
     private final CurrentUserAccessor currentUserAccessor;
+    private final OnlineUserService onlineUserService;
     /**
      * 新建群聊
      */
@@ -179,6 +181,12 @@ public class GroupServiceImpl implements GroupService {
             groupMemberVO.setAvatarFullUrl(OssConstant.buildFullUrl(member.getAvatarUrl()));
             groupMemberVOList.add(groupMemberVO);
         }
+
+        int onlineCount = (int) memberIdList.stream()
+                .filter(Objects::nonNull)
+                .filter(onlineUserService::isUserOnline)
+                .count();
+        vo.setOnlineCount(onlineCount);
 
         vo.setMembers(groupMemberVOList);
 

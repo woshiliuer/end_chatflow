@@ -21,6 +21,7 @@ import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.UserService;
 import org.example.chatflow.support.CurrentUserAccessor;
+import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.factory.VerifyCodeStrategyFactory;
 import org.example.chatflow.strategy.VerifyCodeStrategy;
 import org.example.chatflow.utils.*;
@@ -49,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private final AliOssUtil aliOssUtil;
     private final VerifyCodeStrategyFactory verifyCodeStrategyFactory;
     private final CurrentUserAccessor currentUserAccessor;
+    private final OnlineUserService onlineUserService;
 
     /**
      * 登录
@@ -221,6 +223,18 @@ public class UserServiceImpl implements UserService {
         user.setPassword(password);
         VerifyUtil.ensureOperationSucceeded(userRepository.update(user), ErrorCode.UPDATE_USER_INFO_FAIL);
         return CurlResponse.success("成功重置密码");
+    }
+
+    /**
+     * 退出登录：清理在线状态
+     */
+    @Override
+    public CurlResponse<String> logout() {
+        Long userId = ThreadLocalUtil.getUserId();
+        if (userId != null) {
+            onlineUserService.userOffline(userId);
+        }
+        return CurlResponse.success("退出登录成功");
     }
 
     private User checkUserIsExists(){

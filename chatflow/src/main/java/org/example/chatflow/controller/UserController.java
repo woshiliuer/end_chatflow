@@ -104,4 +104,10 @@ public class UserController {
         return userService.recoverPassword(dto);
     }
 
+    @Operation(summary = "退出登录")
+    @PostMapping("/logout")
+    public CurlResponse<String> logout() {
+        return userService.logout();
+    }
+
 }

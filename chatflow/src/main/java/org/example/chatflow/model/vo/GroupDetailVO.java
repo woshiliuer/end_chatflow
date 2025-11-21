@@ -32,6 +32,9 @@ public class GroupDetailVO {
     @Schema(description = "群成员列表")
     private List<GroupMemberVO> members;
 
+    @Schema(description = "在线成员数量")
+    private Integer onlineCount;
+
     @Mapper
     public interface GroupDetailVOMapper{
         GroupDetailVO.GroupDetailVOMapper INSTANCE = Mappers.getMapper(GroupDetailVO.GroupDetailVOMapper.class);

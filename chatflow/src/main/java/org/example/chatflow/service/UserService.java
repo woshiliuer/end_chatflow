@@ -30,4 +30,9 @@ public interface UserService {
     CurlResponse<String> updateUserInfo(UpdateUserInfoDTO dto);
 
     CurlResponse<String> recoverPassword(RecoverPasswordDTO dto);
+
+    /**
+     * 退出登录，清理在线状态
+     */
+    CurlResponse<String> logout();
 }

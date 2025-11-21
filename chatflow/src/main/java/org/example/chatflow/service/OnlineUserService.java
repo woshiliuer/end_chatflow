@@ -20,9 +20,9 @@ public interface OnlineUserService {
     
     /**
      * 用户下线
-     * @param sessionId WebSocket会话ID
+     * @param userId WebSocket会话ID
      */
-    void userOffline(String sessionId);
+    void userOffline(Long userId);
     
     /**
      * 根据会话ID获取用户ID
@@ -77,5 +77,3 @@ public interface OnlineUserService {
      */
     boolean canUserConnect(Long userId);
 }
-
-
