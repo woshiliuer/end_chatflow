@@ -268,3 +268,7 @@ INSERT INTO `user` VALUES (2, '7JI5NOpYkG@yun.pics', '$2a$10$YERJUlLFmPuEvCh0yqs
 INSERT INTO `user` VALUES (3, 'p8XnmRwp4C@say0.com', '$2a$10$Azm8hKeKHxlue0AlmnFU3.IBDJCUq7T0PZ4L/MgojvVXrG/nQZQZW', '', 1, '刘二', 'default-avatar/default-person.jpg', NULL, NULL, NULL, NULL, NULL, NULL, 1);
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+
+
