@@ -2,6 +2,7 @@ package org.example.chatflow.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.Direction;
 import org.example.chatflow.common.enums.ErrorCode;
@@ -15,6 +16,7 @@ import org.example.chatflow.model.vo.MessageVO;
 import org.example.chatflow.repository.ConversationRepository;
 import org.example.chatflow.repository.ConversationUserRepository;
 import org.example.chatflow.repository.MessageRepository;
+import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.MessageService;
 import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
@@ -24,9 +26,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -43,24 +43,34 @@ public class MessageServiceImpl implements MessageService {
     private final CurrentUserAccessor currentUserAccessor;
     private final OnlineUserService onlineUserService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final UserRepository userRepository;
     /**
      * 消息列表
      */
     @Override
     public CurlResponse<List<MessageVO>> messageList(Long param) {
-        User user = currentUserAccessor.getCurrentUser();
+        User currentUser = currentUserAccessor.getCurrentUser();
         List<Message>  messageList = messageRepository.findByConversationIds(Collections.singleton(param));
+        //消息列表提取发送Id到Set
+        Set<Long> userIds = messageList.stream().map(
+                Message::getSenderId
+        ).collect(Collectors.toSet());
+
+        //批量查询用户信息出来,分组成map
+        Map<Long,User> userMap = userRepository.findUserMapByIds(userIds);
+
         List<MessageVO>  messageVOList = new ArrayList<>();
         for (Message message:messageList){
             MessageVO messageVO = MessageVO.MessageVOMapper.INSTANCE.toVO(message);
-
             Direction direction;
-            if (message.getSenderId().equals(user.getId())){
+            User user = userMap.get(message.getSenderId());
+            VerifyUtil.isTrue(user == null , ErrorCode.SENDER_NOT_EXISTS);
+            if (message.getSenderId().equals(currentUser.getId())){
                 direction = Direction.USER_TO_FRIEND;
             }else{
                 direction = Direction.FRIEND_TO_USER;
             }
-            VerifyUtil.isTrue(direction == null , ErrorCode.SENDER_NOT_EXISTS);
+            messageVO.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
             messageVO.setDirection(direction.getCode());
             messageVOList.add(messageVO);
         }
@@ -75,7 +85,11 @@ public class MessageServiceImpl implements MessageService {
     public CurlResponse<MessageVO> sendMessage(SendMessageDTO dto) {
         User currentUser = currentUserAccessor.getCurrentUser();
         Long senderId = currentUser.getId();
-        
+
+        //查询接收者用户Id
+        User sender = userRepository.findById(senderId).orElse(null);
+        VerifyUtil.isTrue(sender == null , ErrorCode.SENDER_NOT_EXISTS);
+
         // 1. 验证会话是否存在
         Conversation conversation = conversationRepository.findById(dto.getConversationId())
                 .orElseThrow(() -> new RuntimeException(ErrorCode.CONVERSATION_NOT_FOUND.getMessage()));
@@ -112,7 +126,9 @@ public class MessageServiceImpl implements MessageService {
         conversation.setLastMessageId(message.getId());
         conversation.setLastMessageTime(message.getSendTime());
         conversationRepository.update(conversation);
-        
+
+
+
         // 8. 构建WebSocket推送消息
         MessagePushDTO pushDTO = MessagePushDTO.builder()
                 .id(message.getId())
@@ -126,6 +142,7 @@ public class MessageServiceImpl implements MessageService {
                 .sequence(message.getSequence())
                 .sendTime(message.getSendTime())
                 .status(message.getStatus())
+                .avatarFullUrl(OssConstant.buildFullUrl(sender.getAvatarUrl()))
                 .build();
         
         // 9. 通过WebSocket推送消息给所有接收者（如果在线）

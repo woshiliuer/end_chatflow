@@ -54,4 +54,15 @@ public class UserRepositoryImpl extends BaseRepositoryImpl<UserMapper, User, Lon
                 .eq(User::getDeleted, Deleted.HAS_NOT_DELETED.getCode())
                 .list();
     }
+
+    @Override
+    public Map<Long, User> findUserMapByIds(Set<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+        List<User> userList = lambdaQuery().in(User::getId, userIds)
+                .eq(User::getDeleted, Deleted.HAS_NOT_DELETED.getCode())
+                .list();
+        return userList.stream().collect(Collectors.toMap(User::getId,user -> user));
+    }
 }

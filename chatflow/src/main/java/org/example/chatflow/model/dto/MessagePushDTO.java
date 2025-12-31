@@ -34,6 +34,9 @@ public class MessagePushDTO {
     
     @Schema(description = "发送者昵称")
     private String senderNickname;
+
+    @Schema(description = "发送者头像Url")
+    private String avatarFullUrl;
     
     @Schema(description = "消息类型：1文本 2图片 3语音")
     private Integer messageType;

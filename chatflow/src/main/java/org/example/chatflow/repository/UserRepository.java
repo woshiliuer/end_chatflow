@@ -18,4 +18,6 @@ public interface UserRepository extends BaseRepository<User, Long> {
     Map<Long, User> getUsersMapByIds(Set<Long> allFriendIds);
 
     List<User> findExistByIds(Set<Long> memberIdList);
+
+    Map<Long, User> findUserMapByIds(Set<Long> userIds);
 }

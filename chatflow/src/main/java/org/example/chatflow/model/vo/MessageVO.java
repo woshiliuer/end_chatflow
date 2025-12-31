@@ -30,6 +30,9 @@ public class MessageVO {
     @Schema(description = "表示对方发送给我的，还是我发送给对方的")
     private Integer direction;
 
+    @Schema(description = "头像Url")
+    private String avatarFullUrl;
+
     @Mapper
     public interface MessageVOMapper {
         MessageVO.MessageVOMapper INSTANCE = Mappers.getMapper(MessageVO.MessageVOMapper.class);
