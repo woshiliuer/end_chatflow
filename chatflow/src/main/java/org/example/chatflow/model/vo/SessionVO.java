@@ -45,8 +45,6 @@ public class SessionVO {
     @Schema(description = "会话类型： 1单聊 2群聊")
     private Integer conversationType;
 
-    @Schema
-
     @Mapper
     public interface SessionVOMapper{
         SessionVO.SessionVOMapper INSTANCE = Mappers.getMapper(SessionVOMapper.class);

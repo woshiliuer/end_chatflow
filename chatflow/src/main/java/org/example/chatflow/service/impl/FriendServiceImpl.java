@@ -3,7 +3,7 @@ package org.example.chatflow.service.impl;
 import com.aliyuncs.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.chatflow.common.constants.OssConstant;
+import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.*;
 import org.example.chatflow.common.exception.BusinessException;
@@ -22,6 +22,7 @@ import org.example.chatflow.repository.FriendRelationRepository;
 import org.example.chatflow.repository.FriendRequestRepository;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.ConversationService;
+import org.example.chatflow.service.FileService;
 import org.example.chatflow.service.FriendService;
 import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
@@ -56,6 +57,8 @@ public class FriendServiceImpl implements FriendService {
 
     private final OnlineUserService onlineUserService;
 
+    private final FileService fileService;
+
     /**
      * 获取好友列表
      */
@@ -76,7 +79,11 @@ public class FriendServiceImpl implements FriendService {
             GetFriendListVO getFriendListVO = new  GetFriendListVO();
             User user = friendMap.get(friendRelation.getFriendId());
             getFriendListVO.setId(user.getId());
-            getFriendListVO.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
+//            getFriendListVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+//                    FileSourceTypeConstant.USER_AVATAR,
+//                    user.getId(),
+//                    user.getAvatarUrl()
+//            ));
             getFriendListVO.setRemark(StringUtils.isEmpty(friendRelation.getRemark()) ?
                     friendRelation.getRemark() :
                     user.getNickname());
@@ -201,7 +208,11 @@ public class FriendServiceImpl implements FriendService {
         FriendRequestListVO vo = new FriendRequestListVO();
         vo.setUserId(user.getId());
         vo.setNickname(user.getNickname());
-        vo.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
+//        vo.setAvatarFullUrl(fileService.getLatestFullUrl(
+//                FileSourceTypeConstant.USER_AVATAR,
+//                user.getId(),
+//                user.getAvatarUrl()
+//        ));
         vo.setApplyMessage(friendRequest.getApplyMessage());
         vo.setCreateTime(friendRequest.getCreateTime());
         vo.setApplyDirection(direction.getCode());
@@ -275,7 +286,11 @@ public class FriendServiceImpl implements FriendService {
         User friend  = userRepository.findById(param).
                 orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_EXISTS));
         FriendDetailVO friendDetailVO = FriendDetailVO.FriendDetailVOMapper.INSTANCE.toVO(friend);
-        friendDetailVO.setAvatarFullUrl(OssConstant.buildFullUrl(friend.getAvatarUrl()));
+//        friendDetailVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+//                FileSourceTypeConstant.USER_AVATAR,
+//                friend.getId(),
+//                friend.getAvatarUrl()
+//        ));
         FriendRelation relation = friendRelationRepository.findByUserAndFriendId(user.getId(),friend.getId());
         VerifyUtil.isTrue(relation == null,ErrorCode.FRIEND_RELATION_NOT_EXISTS);
         friendDetailVO.setRemark(relation.getRemark());

@@ -31,17 +31,13 @@ public class EmojiPackServiceImpl implements EmojiPackService {
     }
 
     @Override
-    public CurlResponse<String> save(EmojiPack emojiPack) {
-        VerifyUtil.isTrue(emojiPack == null, "参数错误");
-        VerifyUtil.ensureOperationSucceeded(emojiPackRepository.save(emojiPack), "保存失败");
-        return CurlResponse.success("保存成功");
+    public boolean save(EmojiPack emojiPack) {
+        return emojiPackRepository.save(emojiPack);
     }
 
     @Override
-    public CurlResponse<String> update(EmojiPack emojiPack) {
-        VerifyUtil.isTrue(emojiPack == null || emojiPack.getId() == null, "参数错误");
-        VerifyUtil.ensureOperationSucceeded(emojiPackRepository.update(emojiPack), "更新失败");
-        return CurlResponse.success("更新成功");
+    public boolean update(EmojiPack emojiPack) {
+        return emojiPackRepository.update(emojiPack);
     }
 
     @Override

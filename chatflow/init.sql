@@ -243,3 +243,24 @@ CREATE TABLE IF NOT EXISTS user_emoji_item (
    `deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否删除',
    PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户-表情项关系表';
+
+CREATE TABLE file
+(
+    id             bigint auto_increment primary key,
+    source_type    varchar(50)                    not null comment '数据来源类型',
+    source_id      bigint                         not null comment '来源Id',
+    file_type      varchar(128)                   null comment '文件类型',
+    file_name      varchar(200)                   null comment '原始文件名称',
+    file_size      decimal(20, 2)                 null comment '文件大小，单位为KB',
+    file_path      varchar(200)                   not null comment 'oss文件路径',
+    file_desc      varchar(200)                   null comment '文件说明',
+    `create_user_id` BIGINT(20) NOT NULL COMMENT '创建人ID',
+    `create_by` VARCHAR(32) NOT NULL COMMENT '创建人名称',
+    `create_time` BIGINT(20) NOT NULL COMMENT '创建时间',
+    `update_user_id` BIGINT(20) DEFAULT NULL COMMENT '更新人ID',
+    `update_by` VARCHAR(32) DEFAULT NULL COMMENT '更新人名称',
+    `update_time` BIGINT(20) DEFAULT NULL COMMENT '更新时间',
+    `deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否删除'
+) COMMENT '文件表' ROW_FORMAT = DYNAMIC ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+create index idx_source_type_id on file (source_type, source_id);

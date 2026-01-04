@@ -7,58 +7,42 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import org.example.chatflow.common.entity.BaseEntity;
 
-/**
- * 表情项表
- */
-@TableName(value = "emoji_item")
+import java.math.BigDecimal;
+
+@TableName(value = "file")
 @Data
-public class EmojiItem extends BaseEntity<Long> {
+public class FileEntity extends BaseEntity<Long> {
 
-    /**
-     * 所属表情包ID
-     */
-    @TableField("pack_id")
-    private Long packId;
+    @TableField("source_type")
+    private String sourceType;
 
-    /**
-     * 表情项名称
-     */
-    @TableField("name")
-    private String name;
+    @TableField("source_id")
+    private Long sourceId;
 
-    /**
-     * 表情类型：1Unicode 2静态图 3动图
-     */
-    @TableField("type")
-    private Integer type;
+    @TableField("file_type")
+    private String fileType;
 
-    /**
-     * Unicode表情字符
-     */
-    @TableField("unicode_val")
-    private String unicodeVal;
+    @TableField("file_name")
+    private String fileName;
 
-    /**
-     * 更新人ID
-     */
+    @TableField("file_size")
+    private Long fileSize;
+
+    @TableField("file_path")
+    private String filePath;
+
+    @TableField("file_desc")
+    private String fileDesc;
+
     @TableField(value = "update_user_id", fill = FieldFill.UPDATE)
     private Long updateUserId;
 
-    /**
-     * 更新人名称
-     */
     @TableField(value = "update_by", fill = FieldFill.UPDATE)
     private String updateBy;
 
-    /**
-     * 更新时间
-     */
     @TableField(value = "update_time", fill = FieldFill.UPDATE)
     private Long updateTime;
 
-    /**
-     * 是否删除
-     */
     @TableLogic
     @TableField("deleted")
     private Integer deleted;

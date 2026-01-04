@@ -32,10 +32,13 @@ public class EmojiItemServiceImpl implements EmojiItemService {
     }
 
     @Override
-    public CurlResponse<String> save(EmojiItem emojiItem) {
-        VerifyUtil.isTrue(emojiItem == null, "参数错误");
-        VerifyUtil.ensureOperationSucceeded(emojiItemRepository.save(emojiItem), "保存失败");
-        return CurlResponse.success("保存成功");
+    public boolean save(EmojiItem emojiItem) {
+        return emojiItemRepository.save(emojiItem);
+    }
+
+    @Override
+    public boolean saveBatch(List<EmojiItem> emojiItems) {
+        return emojiItemRepository.saveBatch(emojiItems);
     }
 
     @Override

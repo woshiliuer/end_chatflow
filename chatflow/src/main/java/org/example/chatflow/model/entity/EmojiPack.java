@@ -21,18 +21,6 @@ public class EmojiPack extends BaseEntity<Long> {
     private String name;
 
     /**
-     * 表情包封面URL
-     */
-    @TableField("cover_url")
-    private String coverUrl;
-
-    /**
-     * 类型：1官方 2用户自建 3默认内置
-     */
-    @TableField("type")
-    private Integer type;
-
-    /**
      * 更新人ID
      */
     @TableField(value = "update_user_id", fill = FieldFill.UPDATE)

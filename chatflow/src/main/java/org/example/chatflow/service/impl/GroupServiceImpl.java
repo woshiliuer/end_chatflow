@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.*;
@@ -23,6 +24,7 @@ import org.example.chatflow.model.vo.GroupListTotalVO;
 import org.example.chatflow.model.vo.GroupListVO;
 import org.example.chatflow.model.vo.GroupMemberVO;
 import org.example.chatflow.repository.*;
+import org.example.chatflow.service.FileService;
 import org.example.chatflow.service.GroupService;
 import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
@@ -48,6 +50,7 @@ public class GroupServiceImpl implements GroupService {
     private final ChatGroupUserRepository chatGroupUserRepository;
     private final CurrentUserAccessor currentUserAccessor;
     private final OnlineUserService onlineUserService;
+    private final FileService fileService;
     /**
      * 新建群聊
      */
@@ -65,6 +68,14 @@ public class GroupServiceImpl implements GroupService {
         chatGroup.setDeleted(Deleted.HAS_NOT_DELETED.getCode());
         //保存群聊
         VerifyUtil.ensureOperationSucceeded(chatGroupRepository.save(chatGroup), ErrorCode.GROUP_SAVE_FAIL);
+
+//        fileService.saveFile(
+//                FileSourceTypeConstant.GROUP_AVATAR,
+//                chatGroup.getId(),
+//                OssConstant.DEFAULT_GROUP_AVATAR,
+//                null,
+//                null
+//        );
 
         //创建会话
         Conversation conversation = new  Conversation();
@@ -160,6 +171,11 @@ public class GroupServiceImpl implements GroupService {
         ChatGroup group = chatGroupRepository.findNormalById(groupId);
         VerifyUtil.isTrue(group == null,ErrorCode.GROUP_NOT_EXISTS);
         GroupDetailVO vo = GroupDetailVO.GroupDetailVOMapper.INSTANCE.toVO(group);
+//        vo.setGroupAvatarFullUrl(fileService.getLatestFullUrl(
+//                FileSourceTypeConstant.GROUP_AVATAR,
+//                group.getId(),
+//                group.getGroupAvatarUrl()
+//        ));
         List<ChatGroupUser> groupUsers = chatGroupUserRepository.findByGroupId(groupId).stream()
                 .filter(member -> Objects.equals(member.getStatus(), ChatGroupUserStatus.NORMAL.getCode()))
                 .collect(Collectors.toList());
@@ -178,7 +194,11 @@ public class GroupServiceImpl implements GroupService {
             groupMemberVO.setNickname(member.getNickname());
             Integer role = roleByMemberId.get(member.getId());
             groupMemberVO.setRole(role == null ? GroupRole.MEMBER.getCode() : role);
-            groupMemberVO.setAvatarFullUrl(OssConstant.buildFullUrl(member.getAvatarUrl()));
+//            groupMemberVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+//                    FileSourceTypeConstant.USER_AVATAR,
+//                    member.getId(),
+//                    member.getAvatarUrl()
+//            ));
             groupMemberVOList.add(groupMemberVO);
         }
 
@@ -417,7 +437,11 @@ public class GroupServiceImpl implements GroupService {
             return null;
         }
         GroupListVO vo = GroupListVO.GroupListVOMapper.INSTANCE.toVO(chatGroup);
-        vo.setGroupAvatarFullUrl(OssConstant.buildFullUrl(chatGroup.getGroupAvatarUrl()));
+//        vo.setGroupAvatarFullUrl(fileService.getLatestFullUrl(
+//                FileSourceTypeConstant.GROUP_AVATAR,
+//                chatGroup.getId(),
+//                chatGroup.getGroupAvatarUrl()
+//        ));
         vo.setRole(roleByGroup.getOrDefault(chatGroup.getId(), GroupRole.MEMBER.getCode()));
         return vo;
     }

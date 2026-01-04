@@ -14,7 +14,9 @@ public interface EmojiItemService {
 
     CurlResponse<EmojiItem> detail(Long id);
 
-    CurlResponse<String> save(EmojiItem emojiItem);
+    boolean save(EmojiItem emojiItem);
+
+    boolean saveBatch(List<EmojiItem> emojiItems)
 
     CurlResponse<String> update(EmojiItem emojiItem);
 

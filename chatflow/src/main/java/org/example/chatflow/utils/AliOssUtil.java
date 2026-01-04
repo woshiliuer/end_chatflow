@@ -7,12 +7,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.config.AliOssProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -54,6 +58,32 @@ public class AliOssUtil {
         String url = buildObjectUrl(objectName);
         log.info("File uploaded successfully: {}", url);
         return url;
+    }
+
+    public String upload(MultipartFile file, String objectName) {
+        Objects.requireNonNull(file, "file must not be null");
+        Objects.requireNonNull(objectName, "objectName must not be null");
+        try {
+            return upload(file.getBytes(), objectName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<String> uploadBatch(List<MultipartFile> files, List<String> objectNames) {
+        Objects.requireNonNull(files, "files must not be null");
+        Objects.requireNonNull(objectNames, "objectNames must not be null");
+        if (files.size() != objectNames.size()) {
+            throw new IllegalArgumentException("files size must equal objectNames size");
+        }
+
+        List<String> urls = new ArrayList<>(files.size());
+        for (int i = 0; i < files.size(); i++) {
+            MultipartFile file = files.get(i);
+            String objectName = objectNames.get(i);
+            urls.add(upload(file, objectName));
+        }
+        return urls;
     }
 
     private String buildObjectUrl(String objectName) {
@@ -135,5 +165,25 @@ public class AliOssUtil {
         return decoded.startsWith("/") ? decoded.substring(1) : decoded;
     }
 
+    /**
+     * 生成唯一文件名
+     */
+    public static String buildFileName(MultipartFile file, Long sourceId) {
+        return buildFileName(file, sourceId, "avatar/");
+    }
+
+    public static String buildFileName(MultipartFile file, Long sourceId, String dirPrefix) {
+        String originalFilename = file.getOriginalFilename();
+        String suffix = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        String prefix = dirPrefix == null ? "" : dirPrefix;
+        if (!prefix.isEmpty() && !prefix.endsWith("/")) {
+            prefix = prefix + "/";
+        }
+        return prefix + sourceId + "_" + System.currentTimeMillis()
+                + "_" + (int) (Math.random() * 10000) + suffix;
+    }
 
 }

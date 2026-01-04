@@ -26,6 +26,9 @@ public class GroupDetailVO {
     @Schema(description = "群简介")
     private String introduction;
 
+    @Schema(description = "群聊头像Url")
+    private String groupAvatarFullUrl;
+
     @Schema(description = "群成员数量（正常状态）")
     private Integer memberCount;
 

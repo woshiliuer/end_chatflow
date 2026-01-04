@@ -2,7 +2,7 @@ package org.example.chatflow.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.chatflow.common.constants.OssConstant;
+import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.Direction;
 import org.example.chatflow.common.enums.ErrorCode;
@@ -17,6 +17,7 @@ import org.example.chatflow.repository.ConversationRepository;
 import org.example.chatflow.repository.ConversationUserRepository;
 import org.example.chatflow.repository.MessageRepository;
 import org.example.chatflow.repository.UserRepository;
+import org.example.chatflow.service.FileService;
 import org.example.chatflow.service.MessageService;
 import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
@@ -44,6 +45,7 @@ public class MessageServiceImpl implements MessageService {
     private final OnlineUserService onlineUserService;
     private final SimpMessagingTemplate messagingTemplate;
     private final UserRepository userRepository;
+    private final FileService fileService;
     /**
      * 消息列表
      */
@@ -70,7 +72,11 @@ public class MessageServiceImpl implements MessageService {
             }else{
                 direction = Direction.FRIEND_TO_USER;
             }
-            messageVO.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
+//            messageVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+//                    FileSourceTypeConstant.USER_AVATAR,
+//                    user.getId(),
+//                    user.getAvatarUrl()
+//            ));
             messageVO.setDirection(direction.getCode());
             messageVOList.add(messageVO);
         }
@@ -142,7 +148,11 @@ public class MessageServiceImpl implements MessageService {
                 .sequence(message.getSequence())
                 .sendTime(message.getSendTime())
                 .status(message.getStatus())
-                .avatarFullUrl(OssConstant.buildFullUrl(sender.getAvatarUrl()))
+//                .avatarFullUrl(fileService.getLatestFullUrl(
+//                        FileSourceTypeConstant.USER_AVATAR,
+//                        sender.getId(),
+//                        sender.getAvatarUrl()
+//                ))
                 .build();
         
         // 9. 通过WebSocket推送消息给所有接收者（如果在线）

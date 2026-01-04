@@ -14,9 +14,9 @@ public interface EmojiPackService {
 
     CurlResponse<EmojiPack> detail(Long id);
 
-    CurlResponse<String> save(EmojiPack emojiPack);
+    boolean save(EmojiPack emojiPack);
 
-    CurlResponse<String> update(EmojiPack emojiPack);
+    boolean update(EmojiPack emojiPack);
 
     CurlResponse<String> delete(Long id);
 }

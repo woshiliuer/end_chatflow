@@ -2,11 +2,8 @@ package org.example.chatflow.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.model.entity.ChatGroup;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**

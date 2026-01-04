@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.chatflow.common.constants.OssConstant;
+import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ConversationStatus;
 import org.example.chatflow.common.enums.ConversationType;
@@ -33,6 +33,7 @@ import org.example.chatflow.repository.FriendRelationRepository;
 import org.example.chatflow.repository.MessageRepository;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.ConversationService;
+import org.example.chatflow.service.FileService;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final ChatGroupRepository chatGroupRepository;
     private final MessageRepository messageRepository;
     private final CurrentUserAccessor currentUserAccessor;
+    private final FileService fileService;
 
     /**
      * 会话列表（仅查询数据库会话基础信息）
@@ -323,14 +325,22 @@ public class ConversationServiceImpl implements ConversationService {
                 if (partner != null) {
                     sessionVO.setRelationId(partner.getId());
                     sessionVO.setDisplayName(partner.getNickname());
-                    sessionVO.setAvatarFullUrl(OssConstant.buildFullUrl(partner.getAvatarUrl()));
+//                    sessionVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+//                            FileSourceTypeConstant.USER_AVATAR,
+//                            partner.getId(),
+//                            partner.getAvatarUrl()
+//                    ));
                 }
             } else if (ConversationType.GROUP.getCode().equals(conversation.getConversationType())) {
                 ChatGroup chatGroup = groupConversationMap.get(conversation.getId());
                 if (chatGroup != null) {
                     sessionVO.setRelationId(chatGroup.getId());
                     sessionVO.setDisplayName(chatGroup.getGroupName());
-                    sessionVO.setAvatarFullUrl(OssConstant.buildFullUrl(chatGroup.getGroupAvatarUrl()));
+//                    sessionVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+//                            FileSourceTypeConstant.GROUP_AVATAR,
+//                            chatGroup.getId(),
+//                            chatGroup.getGroupAvatarUrl()
+//                    ));
                 }
             }
             sessionVOList.add(sessionVO);

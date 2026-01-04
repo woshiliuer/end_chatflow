@@ -1,9 +1,7 @@
 package org.example.chatflow.model.vo;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.example.chatflow.model.dto.User.RegisterDTO;
 import org.example.chatflow.model.entity.User;
 import org.mapstruct.Mapper;
 
