@@ -3,6 +3,7 @@ package org.example.chatflow.model.dto.Emoji;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.example.chatflow.model.entity.EmojiItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -19,7 +20,7 @@ public class EmojiItemDTO {
 
     @Schema(description = "文件", required = true)
     @NotNull(message = "文件不能为空")
-    private MultipartFile file;
+    private FileCommonDTO file;
 
     @Mapper
     public interface EmojiItemDTOMapper {

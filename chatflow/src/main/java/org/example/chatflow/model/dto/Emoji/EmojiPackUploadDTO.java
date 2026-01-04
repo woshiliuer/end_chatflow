@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class EmojiPackUploadDTO {
 
     @Schema(description = "封面图片")
     @NotNull(message = "封面图片不能为空")
-    private MultipartFile coverImage;
+    private FileCommonDTO coverImage;
 
     @NotEmpty(message = "表情项列表不能为空")
     @Schema(description = "表情项列表")

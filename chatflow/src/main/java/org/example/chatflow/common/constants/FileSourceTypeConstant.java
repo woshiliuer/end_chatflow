@@ -8,7 +8,9 @@ public class FileSourceTypeConstant {
 
     public static final String EMOJI_PACK_COVER = "EMOJI_PACK_COVER";
 
-    public static final String EMOJI_ITEM = "EMOJI_ITEM";
+    public static final String EMOJI_ITEM_GIF = "EMOJI_ITEM_GIF";
+
+    public static final String EMOJI_ITEM_STATIC = "EMOJI_ITEM_STATIC";
 
     private FileSourceTypeConstant() {
     }
