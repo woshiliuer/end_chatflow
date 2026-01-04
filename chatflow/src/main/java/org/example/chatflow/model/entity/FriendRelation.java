@@ -1,6 +1,7 @@
 package org.example.chatflow.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import org.example.chatflow.common.entity.BaseEntity;
@@ -33,6 +34,7 @@ public class FriendRelation extends BaseEntity<Long> {
     /**
      * 删除标记
      */
+    @TableLogic
     @TableField("deleted")
     private Integer deleted;
 }

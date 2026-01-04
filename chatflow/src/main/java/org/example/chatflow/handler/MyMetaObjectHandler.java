@@ -3,11 +3,7 @@ package org.example.chatflow.handler;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.reflection.MetaObject;
-import org.example.chatflow.common.enums.ErrorCode;
-import org.example.chatflow.model.entity.User;
-import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.utils.ThreadLocalUtil;
-import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,9 +32,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         if (!isFillEnabled()) {
             return;
         }
-        this.strictUpdateFill(metaObject, "updateTime", Long.class, System.currentTimeMillis());
+        this.strictUpdateFill(metaObject, "updateTime", Long.class, System.currentTimeMillis()/1000);
         this.strictUpdateFill(metaObject, "updateUserId", Long.class, getCurrentUserId());
-        this.strictInsertFill(metaObject, "updateBy", String.class, getCurrentUserNickname());
+        this.strictUpdateFill(metaObject, "updateBy", String.class, getCurrentUserNickname());
     }
 
     private boolean isFillEnabled() {
