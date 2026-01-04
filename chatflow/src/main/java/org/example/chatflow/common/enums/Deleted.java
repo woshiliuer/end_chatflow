@@ -8,8 +8,8 @@ import lombok.Getter;
 @Getter
 public enum Deleted {
 
-    HAS_NOT_DELETED(1, "未删除"),
-    HAS_DELETED(2, "已删除");
+    HAS_NOT_DELETED(0, "未删除"),
+    HAS_DELETED(1, "已删除");
 
     private final Integer code;
     private final String message;
