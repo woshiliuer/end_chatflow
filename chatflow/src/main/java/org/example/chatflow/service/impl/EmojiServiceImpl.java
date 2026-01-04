@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -50,45 +51,44 @@ public class EmojiServiceImpl implements EmojiService {
             EmojiPack emojiPack = new  EmojiPack();
             emojiPack.setName(emojiPackUploadDTO.getName());
             VerifyUtil.ensureOperationSucceeded(emojiPackService.save(emojiPack),"保存表情包失败");
-            //上传封面
+            //上传封面到OSS
             MultipartFile coverFile =  emojiPackUploadDTO.getCoverImage();
-            String url = aliOssUtil.upload(coverFile.getBytes(), aliOssUtil.buildFileName(
+            String coverUrl = aliOssUtil.upload(coverFile.getBytes(), aliOssUtil.buildFileName(
                     coverFile,emojiPack.getId()
             ));
             //保存文件
-            String path = aliOssUtil.toObjectKey(url);
+            String coverPath = aliOssUtil.toObjectKey(coverUrl);
             fileService.saveFile(FileCommonDTO.FileCommonDTOMapper.INSTANCE.toDTO(
                     FileSourceTypeConstant.EMOJI_PACK_COVER,
                     emojiPack.getId(),
                     coverFile.getContentType(),
                     coverFile.getOriginalFilename(),
                     coverFile.getSize(),
-                    path,
+                    coverPath,
                     null
             ));
-            //保存表情项列表
+
+            //保存表情项
             List<EmojiItem> emojiItems = new ArrayList<>();
             List<FileCommonDTO> fileDTOs = new ArrayList<>();
-
             for (EmojiItemDTO itemDTO : emojiPackUploadDTO.getEmojiItems()) {
                 EmojiItem emojiItem = EmojiItemDTO.EmojiItemDTOMapper.INSTANCE.toEntity(itemDTO);
                 emojiItem.setPackId(emojiPack.getId());
                 emojiItems.add(emojiItem);
             }
-            // 批量插入emoji items
             emojiItemService.saveBatch(emojiItems);
 
-            // 批量处理文件上传和保存
+            // 处理文件上传和保存
             for (int i = 0; i < emojiPackUploadDTO.getEmojiItems().size(); i++) {
                 EmojiItemDTO itemDTO = emojiPackUploadDTO.getEmojiItems().get(i);
                 EmojiItem emojiItem = emojiItems.get(i);
                 MultipartFile emojiFile = itemDTO.getFile();
-                // 上传到OSS
+
+                // 上传表情到OSS
                 String emojiUrl = aliOssUtil.upload(
                         emojiFile.getBytes(),
-                        aliOssUtil.buildFileName(emojiFile, emojiPack.getId())
+                        aliOssUtil.buildFileName(emojiFile, emojiItem.getId())
                 );
-
                 // 准备文件DTO
                 String emojiPath = aliOssUtil.toObjectKey(emojiUrl);
                 fileDTOs.add(FileCommonDTO.FileCommonDTOMapper.INSTANCE.toDTO(
@@ -101,7 +101,7 @@ public class EmojiServiceImpl implements EmojiService {
                         null
                 ));
             }
-            // 批量保存文件记录
+            // 保存文件
             fileService.saveBatchFile(fileDTOs);
         } catch (IOException e) {
             throw new RuntimeException(e);
