@@ -10,6 +10,8 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.enums.Gender;
 import org.example.chatflow.common.exception.BusinessException;
+import org.example.chatflow.common.constants.FileSourceTypeConstant;
+import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.example.chatflow.model.dto.User.GetVerfCodeDTO;
 import org.example.chatflow.model.dto.User.LoginDTO;
 import org.example.chatflow.model.dto.User.RecoverPasswordDTO;
@@ -19,6 +21,7 @@ import org.example.chatflow.model.entity.User;
 import org.example.chatflow.model.vo.UserByEmailVO;
 import org.example.chatflow.model.vo.UserInfoVO;
 import org.example.chatflow.repository.UserRepository;
+import org.example.chatflow.service.FileService;
 import org.example.chatflow.service.UserService;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.service.OnlineUserService;
@@ -48,6 +51,7 @@ public class UserServiceImpl implements UserService {
     private final BcryptUtil bcryptUtil;
     private final RedisUtil redisUtil;
     private final AliOssUtil aliOssUtil;
+    private final FileService fileService;
     private final VerifyCodeStrategyFactory verifyCodeStrategyFactory;
     private final CurrentUserAccessor currentUserAccessor;
     private final OnlineUserService onlineUserService;
@@ -108,7 +112,6 @@ public class UserServiceImpl implements UserService {
         String password = bcryptUtil.hash(rawPassword);
         //创建新用户
         User user = RegisterDTO.RegisterDTOMapper.INSTANCE.toUser(dto);
-        user.setAvatarUrl(OssConstant.DEFAULT_AVATAR);
         user.setPassword(password);
         //性别默认男
         user.setGender(Gender.MALE.getCode());
@@ -116,6 +119,16 @@ public class UserServiceImpl implements UserService {
         user.setSignature("");
         boolean result = userRepository.save(user);
         VerifyUtil.ensureOperationSucceeded(result, ErrorCode.ADD_USER_FAIL);
+
+        fileService.updateFile(FileCommonDTO.FileCommonDTOMapper.INSTANCE.toDTO(
+                FileSourceTypeConstant.USER_AVATAR,
+                user.getId(),
+                null,
+                null,
+                null,
+                OssConstant.DEFAULT_AVATAR,
+                null
+        ));
         //删除验证码
         redisUtil.del(redisKey);
         return CurlResponse.success("注册成功");
@@ -132,7 +145,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_EXISTS));
 
         UserInfoVO userInfoVO = UserInfoVO.UserInfoVOMapper.INSTANCE.toVO(user);
-        userInfoVO.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
+        userInfoVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+                FileSourceTypeConstant.USER_AVATAR,
+                user.getId(),
+                OssConstant.DEFAULT_AVATAR
+        ));
 
         return CurlResponse.success(userInfoVO);
     }
@@ -145,7 +162,11 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(param);
         VerifyUtil.isTrue(user == null, ErrorCode.USER_NOT_EXISTS);
         UserByEmailVO  userByEmailVO = UserByEmailVO.UserByEmailVOMapper.INSTANCE.toVO(user);
-        userByEmailVO.setAvatarFullUrl(OssConstant.buildFullUrl(user.getAvatarUrl()));
+        userByEmailVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+                FileSourceTypeConstant.USER_AVATAR,
+                user.getId(),
+                OssConstant.DEFAULT_AVATAR
+        ));
         return CurlResponse.success(userByEmailVO);
     }
 
@@ -157,23 +178,31 @@ public class UserServiceImpl implements UserService {
     public CurlResponse<String> uploadAvatar(MultipartFile file) {
         VerifyUtil.isTrue(file.isEmpty(),ErrorCode.FILE_IS_NULL);
         User user = checkUserIsExists();
-        String url = "";
         try {
+            String oldPath = fileService.getLatestFilePath(FileSourceTypeConstant.USER_AVATAR, user.getId());
+            if (oldPath != null && !oldPath.isBlank() && !OssConstant.DEFAULT_AVATAR.equals(oldPath)) {
+                aliOssUtil.delete(oldPath);
+            }
 
-            url = aliOssUtil.upload(file.getBytes(), buildAvatarFileName(
+            String url = aliOssUtil.upload(file.getBytes(), buildAvatarFileName(
                     file,user.getId()
             ));
-            //删除原来的
-            String avatar = user.getAvatarUrl();
-            if (!OssConstant.DEFAULT_AVATAR.equals(avatar)) {}
-                aliOssUtil.delete(avatar);
-            //更新url
-            user.setAvatarUrl(aliOssUtil.toObjectKey(url));
-            userRepository.update(user);
+            String newPath = AliOssUtil.toObjectKey(url);
+
+            fileService.updateFile(FileCommonDTO.FileCommonDTOMapper.INSTANCE.toDTO(
+                    FileSourceTypeConstant.USER_AVATAR,
+                    user.getId(),
+                    file.getContentType(),
+                    file.getOriginalFilename(),
+                    file.getSize(),
+                    newPath,
+                    null
+            ));
+
+            return CurlResponse.success(url);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return CurlResponse.success(url);
     }
 
     @Override

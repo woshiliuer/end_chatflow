@@ -3,9 +3,20 @@ package org.example.chatflow.service;
 import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface FileService {
+
+    String getLatestFilePath(String sourceType, Long sourceId);
+
+    String getLatestFullUrl(String sourceType, Long sourceId, String defaultFilePath);
+
+    Map<Long, String> getLatestFilePathMap(String sourceType, Collection<Long> sourceIds);
+
+    Map<Long, String> getLatestFullUrlMap(String sourceType, Collection<Long> sourceIds, String defaultFilePath);
+
     boolean saveFile(FileCommonDTO fileCommonDTO);
 
     boolean updateFile(FileCommonDTO dto);

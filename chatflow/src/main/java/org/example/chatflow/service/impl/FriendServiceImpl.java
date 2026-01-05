@@ -4,6 +4,7 @@ import com.aliyuncs.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.FileSourceTypeConstant;
+import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.*;
 import org.example.chatflow.common.exception.BusinessException;
@@ -73,17 +74,20 @@ public class FriendServiceImpl implements FriendService {
         ).collect(Collectors.toSet()));
         Map<Long, User> friendMap = userRepository.getUsersMapByIds(allFriendIds);
 
+        Map<Long, String> avatarByUserId = fileService.getLatestFullUrlMap(
+                FileSourceTypeConstant.USER_AVATAR,
+                allFriendIds,
+                OssConstant.DEFAULT_AVATAR
+        );
+
         List<GetFriendListVO> getFriendListVOList = new ArrayList<>();
 
         for (FriendRelation friendRelation : ownFriends) {
             GetFriendListVO getFriendListVO = new  GetFriendListVO();
             User user = friendMap.get(friendRelation.getFriendId());
             getFriendListVO.setId(user.getId());
-//            getFriendListVO.setAvatarFullUrl(fileService.getLatestFullUrl(
-//                    FileSourceTypeConstant.USER_AVATAR,
-//                    user.getId(),
-//                    user.getAvatarUrl()
-//            ));
+            String avatarUrl = avatarByUserId.get(user.getId());
+            getFriendListVO.setAvatarFullUrl(avatarUrl);
             getFriendListVO.setRemark(StringUtils.isEmpty(friendRelation.getRemark()) ?
                     friendRelation.getRemark() :
                     user.getNickname());
@@ -168,13 +172,19 @@ public class FriendServiceImpl implements FriendService {
         userIds.addAll(inComIn.stream().map(FriendRequest::getRequesterId).collect(Collectors.toSet()));
         Map<Long, User> friendMap = userRepository.getUsersMapByIds(userIds);
 
+        Map<Long, String> avatarByUserId = fileService.getLatestFullUrlMap(
+                FileSourceTypeConstant.USER_AVATAR,
+                userIds,
+                OssConstant.DEFAULT_AVATAR
+        );
+
         List<FriendRequestListVO> voList = new ArrayList<>(outGoIn.size() + inComIn.size());
 
         int pendingCount = 0;
         // 我发出的申请
         for (FriendRequest friendRequest : outGoIn) {
             User receiver = friendMap.get(friendRequest.getReceiverId());
-            FriendRequestListVO vo = buildReqiestListVO(receiver, friendRequest, Direction.USER_TO_FRIEND);
+            FriendRequestListVO vo = buildReqiestListVO(receiver, friendRequest, Direction.USER_TO_FRIEND, avatarByUserId);
             if (vo != null) {
                 if (vo.getRequestStatus().equals(RequestStatus.PENDING.getCode()))
                     pendingCount++;
@@ -187,7 +197,7 @@ public class FriendServiceImpl implements FriendService {
         // 我收到的申请
         for (FriendRequest friendRequest : inComIn) {
             User requester = friendMap.get(friendRequest.getRequesterId());
-            FriendRequestListVO vo = buildReqiestListVO(requester, friendRequest, Direction.FRIEND_TO_USER);
+            FriendRequestListVO vo = buildReqiestListVO(requester, friendRequest, Direction.FRIEND_TO_USER, avatarByUserId);
             if (vo != null) {
                 if (vo.getRequestStatus().equals(RequestStatus.PENDING.getCode()))
                     pendingCount++;
@@ -201,18 +211,17 @@ public class FriendServiceImpl implements FriendService {
         return CurlResponse.success(vo);
     }
 
-    private FriendRequestListVO buildReqiestListVO(User user, FriendRequest friendRequest, Direction direction) {
+    private FriendRequestListVO buildReqiestListVO(User user,
+                                                   FriendRequest friendRequest,
+                                                   Direction direction,
+                                                   Map<Long, String> avatarByUserId) {
         if (user == null || friendRequest == null) {
             return null;
         }
         FriendRequestListVO vo = new FriendRequestListVO();
         vo.setUserId(user.getId());
         vo.setNickname(user.getNickname());
-//        vo.setAvatarFullUrl(fileService.getLatestFullUrl(
-//                FileSourceTypeConstant.USER_AVATAR,
-//                user.getId(),
-//                user.getAvatarUrl()
-//        ));
+        vo.setAvatarFullUrl(avatarByUserId == null ? null : avatarByUserId.get(user.getId()));
         vo.setApplyMessage(friendRequest.getApplyMessage());
         vo.setCreateTime(friendRequest.getCreateTime());
         vo.setApplyDirection(direction.getCode());
@@ -286,11 +295,11 @@ public class FriendServiceImpl implements FriendService {
         User friend  = userRepository.findById(param).
                 orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_EXISTS));
         FriendDetailVO friendDetailVO = FriendDetailVO.FriendDetailVOMapper.INSTANCE.toVO(friend);
-//        friendDetailVO.setAvatarFullUrl(fileService.getLatestFullUrl(
-//                FileSourceTypeConstant.USER_AVATAR,
-//                friend.getId(),
-//                friend.getAvatarUrl()
-//        ));
+        friendDetailVO.setAvatarFullUrl(fileService.getLatestFullUrl(
+                FileSourceTypeConstant.USER_AVATAR,
+                friend.getId(),
+                OssConstant.DEFAULT_AVATAR
+        ));
         FriendRelation relation = friendRelationRepository.findByUserAndFriendId(user.getId(),friend.getId());
         VerifyUtil.isTrue(relation == null,ErrorCode.FRIEND_RELATION_NOT_EXISTS);
         friendDetailVO.setRemark(relation.getRemark());

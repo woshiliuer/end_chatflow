@@ -6,22 +6,75 @@ import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.example.chatflow.model.entity.FileEntity;
 import org.example.chatflow.repository.FileRepository;
 import org.example.chatflow.service.FileService;
-import org.example.chatflow.utils.AliOssUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class FileServiceImpl implements FileService {
 
     private final FileRepository fileRepository;
+
+    @Override
+    public String getLatestFilePath(String sourceType, Long sourceId) {
+        FileEntity latest = fileRepository.findLatestBySource(sourceType, sourceId);
+        return latest == null ? null : latest.getFilePath();
+    }
+
+    @Override
+    public String getLatestFullUrl(String sourceType, Long sourceId, String defaultFilePath) {
+        String path = getLatestFilePath(sourceType, sourceId);
+        if (path == null || path.isBlank()) {
+            if (defaultFilePath == null || defaultFilePath.isBlank()) {
+                return null;
+            }
+            return OssConstant.buildFullUrl(defaultFilePath);
+        }
+        return OssConstant.buildFullUrl(path);
+    }
+
+    @Override
+    public Map<Long, String> getLatestFilePathMap(String sourceType, Collection<Long> sourceIds) {
+        if (sourceType == null || sourceType.isBlank() || sourceIds == null || sourceIds.isEmpty()) {
+            return new LinkedHashMap<>();
+        }
+        Map<Long, String> result = new LinkedHashMap<>();
+        List<FileEntity> latestList = fileRepository.findLatestBySourceIds(sourceType, sourceIds);
+        if (latestList == null || latestList.isEmpty()) {
+            return result;
+        }
+        for (FileEntity entity : latestList) {
+            if (entity == null || entity.getSourceId() == null) {
+                continue;
+            }
+            result.putIfAbsent(entity.getSourceId(), entity.getFilePath());
+        }
+        return result;
+    }
+
+    @Override
+    public Map<Long, String> getLatestFullUrlMap(String sourceType, Collection<Long> sourceIds, String defaultFilePath) {
+        Map<Long, String> pathMap = getLatestFilePathMap(sourceType, sourceIds);
+        Map<Long, String> result = new LinkedHashMap<>();
+        if (sourceIds == null || sourceIds.isEmpty()) {
+            return result;
+        }
+        for (Long id : sourceIds) {
+            String path = pathMap.get(id);
+            if (path == null || path.isBlank()) {
+                result.put(id, defaultFilePath == null ? null : OssConstant.buildFullUrl(defaultFilePath));
+            } else {
+                result.put(id, OssConstant.buildFullUrl(path));
+            }
+        }
+        return result;
+    }
 
     @Override
     public boolean saveFile(FileCommonDTO dto) {
@@ -49,7 +102,7 @@ public class FileServiceImpl implements FileService {
         if (sourceType == null || sourceType.isBlank() || sourceId == null) {
             return false;
         }
-        fileRepository.deleteById(sourceId);
+        fileRepository.deleteBySource(sourceType, sourceId);
         return fileRepository.save(FileCommonDTO.FileCommonDTOMapper.INSTANCE.toEntity(dto));
     }
 

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.FileSourceTypeConstant;
+import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ConversationStatus;
 import org.example.chatflow.common.enums.ConversationType;
@@ -103,6 +104,28 @@ public class ConversationServiceImpl implements ConversationService {
 
         Map<Long, ChatGroup> groupConversationMap = loadGroupConversationInfo(buckets.groupConversations());
 
+        Set<Long> partnerIds = privateConversationUserMap.values().stream()
+                .filter(Objects::nonNull)
+                .map(User::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        Map<Long, String> userAvatarByUserId = fileService.getLatestFullUrlMap(
+                FileSourceTypeConstant.USER_AVATAR,
+                partnerIds,
+                OssConstant.DEFAULT_AVATAR
+        );
+
+        Set<Long> groupIds = groupConversationMap.values().stream()
+                .filter(Objects::nonNull)
+                .map(ChatGroup::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        Map<Long, String> groupAvatarByGroupId = fileService.getLatestFullUrlMap(
+                FileSourceTypeConstant.GROUP_AVATAR,
+                groupIds,
+                OssConstant.DEFAULT_GROUP_AVATAR
+        );
+
         // 拉取消息明细，用于补全最新消息和未读统计
         Map<Long, List<Message>> messagesByConversation = loadMessagesByConversationIds(conversationIds);
         Map<Long, Message> lastMessageMap = buildLastMessageMap(conversations, messagesByConversation);
@@ -111,7 +134,13 @@ public class ConversationServiceImpl implements ConversationService {
             messagesByConversation, lastReadSeqByConversation, user.getId());
 
         List<SessionVO> sessionVOList = buildSessionList(conversations,
-            privateConversationUserMap, groupConversationMap, lastMessageMap, unreadCountMap, statusByConversation);
+            privateConversationUserMap,
+            groupConversationMap,
+            lastMessageMap,
+            unreadCountMap,
+            statusByConversation,
+            userAvatarByUserId,
+            groupAvatarByGroupId);
 
         return CurlResponse.success(sessionVOList);
     }
@@ -312,7 +341,9 @@ public class ConversationServiceImpl implements ConversationService {
                                              Map<Long, ChatGroup> groupConversationMap,
                                              Map<Long, Message> lastMessageMap,
                                              Map<Long, Integer> unreadCountMap,
-                                             Map<Long, Integer> statusByConversation) {
+                                             Map<Long, Integer> statusByConversation,
+                                             Map<Long, String> userAvatarByUserId,
+                                             Map<Long, String> groupAvatarByGroupId) {
         // 逐个会话组装输出字段，重用预先拉好的数据 
         List<SessionVO> sessionVOList = new ArrayList<>(conversations.size());
         for (Conversation conversation : conversations) {
@@ -325,22 +356,14 @@ public class ConversationServiceImpl implements ConversationService {
                 if (partner != null) {
                     sessionVO.setRelationId(partner.getId());
                     sessionVO.setDisplayName(partner.getNickname());
-//                    sessionVO.setAvatarFullUrl(fileService.getLatestFullUrl(
-//                            FileSourceTypeConstant.USER_AVATAR,
-//                            partner.getId(),
-//                            partner.getAvatarUrl()
-//                    ));
+                    sessionVO.setAvatarFullUrl(userAvatarByUserId == null ? null : userAvatarByUserId.get(partner.getId()));
                 }
             } else if (ConversationType.GROUP.getCode().equals(conversation.getConversationType())) {
                 ChatGroup chatGroup = groupConversationMap.get(conversation.getId());
                 if (chatGroup != null) {
                     sessionVO.setRelationId(chatGroup.getId());
                     sessionVO.setDisplayName(chatGroup.getGroupName());
-//                    sessionVO.setAvatarFullUrl(fileService.getLatestFullUrl(
-//                            FileSourceTypeConstant.GROUP_AVATAR,
-//                            chatGroup.getId(),
-//                            chatGroup.getGroupAvatarUrl()
-//                    ));
+                    sessionVO.setAvatarFullUrl(groupAvatarByGroupId == null ? null : groupAvatarByGroupId.get(chatGroup.getId()));
                 }
             }
             sessionVOList.add(sessionVO);
