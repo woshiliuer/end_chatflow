@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.model.dto.Emoji.EmojiPackUploadDTO;
 import org.example.chatflow.model.entity.EmojiItem;
+import org.example.chatflow.model.vo.Emoji.EmojiPackListVO;
 import org.example.chatflow.model.vo.common.FileCommonVO;
 import org.example.chatflow.service.ConversationService;
 import org.example.chatflow.service.EmojiService;
@@ -27,5 +28,9 @@ import java.util.List;
 public class EmojiController {
     private final EmojiService emojiService;
 
-
+    @Operation(summary = "表情包列表")
+    @GetMapping("/emojiPackList")
+    public CurlResponse<EmojiPackListVO> emojiPackList(){
+        return emojiService.emojiPackList();
+    }
 }

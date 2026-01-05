@@ -9,6 +9,7 @@ import org.example.chatflow.model.dto.Emoji.EmojiPackUploadDTO;
 import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.example.chatflow.model.entity.EmojiItem;
 import org.example.chatflow.model.entity.EmojiPack;
+import org.example.chatflow.model.vo.Emoji.EmojiPackListVO;
 import org.example.chatflow.service.EmojiItemService;
 import org.example.chatflow.service.EmojiPackService;
 import org.example.chatflow.service.EmojiService;
@@ -41,5 +42,8 @@ public class EmojiServiceImpl implements EmojiService {
 
     private final EmojiItemService emojiItemService;
 
-
+    @Override
+    public CurlResponse<EmojiPackListVO> emojiPackList() {
+        return null;
+    }
 }
