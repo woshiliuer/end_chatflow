@@ -45,7 +45,7 @@ public class FriendController {
         return friendService.friendRequestList();
     }
 
-    @Operation(summary = "同意好友申请",description = "参数传好友Id")
+    @Operation(summary = "同意好友申请")
     @PostMapping("/agreeFriendRequest")
     public CurlResponse<String> agreeFriendRequest(@RequestBody @Validated AgreeRequestDTO dto) {
         return friendService.agreeFriendRequest(dto);

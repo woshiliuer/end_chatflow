@@ -5,11 +5,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.chatflow.common.entity.CurlResponse;
-import org.example.chatflow.model.dto.Emoji.EmojiPackUploadDTO;
-import org.example.chatflow.model.entity.EmojiItem;
+import org.example.chatflow.common.entity.Param;
+import org.example.chatflow.model.dto.Emoji.CustomizeEmojiDTO;
+import org.example.chatflow.model.dto.Emoji.EmojiItemListDTO;
+import org.example.chatflow.model.vo.Emoji.EmojiItemListVO;
 import org.example.chatflow.model.vo.Emoji.EmojiPackListVO;
-import org.example.chatflow.model.vo.common.FileCommonVO;
-import org.example.chatflow.service.ConversationService;
 import org.example.chatflow.service.EmojiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -28,9 +28,58 @@ import java.util.List;
 public class EmojiController {
     private final EmojiService emojiService;
 
-    @Operation(summary = "表情包列表")
-    @GetMapping("/emojiPackList")
-    public CurlResponse<EmojiPackListVO> emojiPackList(){
+    @Operation(summary = "我的表情包列表")
+    @GetMapping("/myEmojiPackList")
+    public CurlResponse<EmojiPackListVO> myEmojiPackList(){
+        return emojiService.myEmojiPackList();
+    }
+
+    @Operation(summary = "表情包下的表情包项",description = "参数传表情包Id")
+    @PostMapping("/emojiItemList")
+    public CurlResponse<List<EmojiItemListVO>> emojiItems(@RequestBody @Validated Param<Long> param){
+        return emojiService.emojiItems(param.getParam());
+    }
+
+    @Operation(summary = "搜索表情包")
+    @PostMapping("/emojiPackList")
+    public CurlResponse<EmojiPackListVO> emojiPackList(@RequestBody EmojiItemListDTO dto){
         return emojiService.emojiPackList();
     }
+
+    @Operation(summary = "用户绑定表情包",description = "参数传表情包Id")
+    @PostMapping("/bindEmojiPack")
+    public CurlResponse<Void> bindEmojiPack(@RequestBody @Validated Param<Long> param){
+        return emojiService.bindEmojiPack(param.getParam());
+    }
+
+    @Operation(summary = "用户解绑表情包",description = "参数传表情包Id")
+    @PostMapping("/unbindEmojiPack")
+    public CurlResponse<Void> unbindEmojiPack(@RequestBody @Validated Param<Long> param){
+        return emojiService.unbindEmojiPack(param.getParam());
+    }
+
+    @Operation(summary = "用户收藏表情",description = "参数传表情项Id")
+    @PostMapping("/bindEmojiItem")
+    public CurlResponse<Void> collectEmojiItem(@RequestBody @Validated Param<Long> param){
+        return emojiService.collectEmojiItem(param.getParam());
+    }
+
+    @Operation(summary = "用户删除表情",description = "参数传表情项Id")
+    @PostMapping("/unbindEmojiItem")
+    public CurlResponse<Void> unbindEmojiItem(@RequestBody @Validated Param<Long> param){
+        return emojiService.unbindEmojiItem(param.getParam());
+    }
+
+    @Operation(summary = "用户添加自定义表情")
+    @PostMapping("/customizeEmoji")
+    public CurlResponse<Void> customizeEmoji(@RequestBody @Validated CustomizeEmojiDTO dto){
+        return emojiService.customizeEmoji(dto);
+    }
+
+    @Operation(summary = "上传自定义表情包文件")
+    @PostMapping("/uploadEmoji")
+    public CurlResponse<Void> uploadEmoji(@RequestParam("file") MultipartFile file){
+        return emojiService.uploadEmoji(file);
+    }
+
 }
