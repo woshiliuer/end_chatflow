@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface UserEmojiPackService {
 
-    CurlResponse<List<UserEmojiPack>> listByUserId(Long userId);
+    List<UserEmojiPack> listByUserId(Long userId);
 
     CurlResponse<String> save(UserEmojiPack relation);
 

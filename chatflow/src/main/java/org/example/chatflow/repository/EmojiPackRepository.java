@@ -3,6 +3,8 @@ package org.example.chatflow.repository;
 import org.example.chatflow.model.entity.EmojiPack;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 表情包仓储接口
@@ -10,4 +12,6 @@ import java.util.List;
 public interface EmojiPackRepository extends BaseRepository<EmojiPack, Long> {
 
     List<EmojiPack> findAll();
+
+    Map<Long, EmojiPack> findPackByIds(Set<Long> ids);
 }

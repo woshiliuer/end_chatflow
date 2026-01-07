@@ -18,9 +18,8 @@ public class UserEmojiPackServiceImpl implements UserEmojiPackService {
     private final UserEmojiPackRepository userEmojiPackRepository;
 
     @Override
-    public CurlResponse<List<UserEmojiPack>> listByUserId(Long userId) {
-        VerifyUtil.isTrue(userId == null, "参数错误");
-        return CurlResponse.success(userEmojiPackRepository.findByUserId(userId));
+    public List<UserEmojiPack> listByUserId(Long userId) {
+        return userEmojiPackRepository.findByUserId(userId);
     }
 
     @Override

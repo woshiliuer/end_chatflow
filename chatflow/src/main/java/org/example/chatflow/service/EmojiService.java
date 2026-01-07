@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface EmojiService {
 
-    CurlResponse<EmojiPackListVO> myEmojiPackList();
+    CurlResponse<List<EmojiPackListVO>> myEmojiPackList();
 
     CurlResponse<List<EmojiItemListVO>> emojiItems(Long param);
 

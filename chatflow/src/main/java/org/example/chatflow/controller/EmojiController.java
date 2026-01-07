@@ -30,7 +30,7 @@ public class EmojiController {
 
     @Operation(summary = "我的表情包列表")
     @GetMapping("/myEmojiPackList")
-    public CurlResponse<EmojiPackListVO> myEmojiPackList(){
+    public CurlResponse<List<EmojiPackListVO>> myEmojiPackList(){
         return emojiService.myEmojiPackList();
     }
 

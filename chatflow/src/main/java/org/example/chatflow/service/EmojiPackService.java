@@ -4,15 +4,14 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.model.entity.EmojiPack;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 表情包管理
  */
 public interface EmojiPackService {
-
-    CurlResponse<List<EmojiPack>> listAll();
-
-    CurlResponse<EmojiPack> detail(Long id);
+    Map<Long,EmojiPack> findPackByIds(Set<Long> ids);
 
     boolean save(EmojiPack emojiPack);
 

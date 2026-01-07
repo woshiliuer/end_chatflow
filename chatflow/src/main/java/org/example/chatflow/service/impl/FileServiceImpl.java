@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.example.chatflow.model.entity.FileEntity;
+import org.example.chatflow.model.vo.common.FileCommonVO;
 import org.example.chatflow.repository.FileRepository;
 import org.example.chatflow.service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,5 +122,24 @@ public class FileServiceImpl implements FileService {
         }
         List<FileEntity> fileEntities = FileCommonDTO.FileCommonDTOMapper.INSTANCE.toEntitys(dtos);
         return fileRepository.saveBatch(fileEntities);
+    }
+
+    @Override
+    public Map<Long, FileCommonVO> getBySourceMap(String sourceType, Collection<Long> sourceIds) {
+        if (sourceType == null || sourceType.isBlank() || sourceIds == null || sourceIds.isEmpty()) {
+            return new LinkedHashMap<>();
+        }
+        Map<Long, FileCommonVO> result = new LinkedHashMap<>();
+        List<FileEntity> latestList = fileRepository.findLatestBySourceIds(sourceType, sourceIds);
+        if (latestList == null || latestList.isEmpty()) {
+            return result;
+        }
+        for (FileEntity entity : latestList) {
+            if (entity == null || entity.getSourceId() == null) {
+                continue;
+            }
+            FileCommonVO vo = FileCommonVO
+            result.putIfAbsent(entity.getSourceId(), entity);
+        }
     }
 }

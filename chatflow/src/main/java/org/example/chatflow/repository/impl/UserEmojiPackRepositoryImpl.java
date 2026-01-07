@@ -24,7 +24,7 @@ public class UserEmojiPackRepositoryImpl
         return lambdaQuery()
             .eq(UserEmojiPack::getUserId, userId)
             .orderByAsc(UserEmojiPack::getSort)
-            .orderByAsc(UserEmojiPack::getId)
+            .orderByAsc(UserEmojiPack::getCreateTime)
             .list();
     }
 }
