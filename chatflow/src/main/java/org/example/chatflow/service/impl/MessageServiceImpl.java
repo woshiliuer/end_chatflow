@@ -9,11 +9,13 @@ import org.example.chatflow.common.enums.Direction;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.model.dto.MessagePushDTO;
 import org.example.chatflow.model.dto.SendMessageDTO;
+import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.example.chatflow.model.entity.Conversation;
 import org.example.chatflow.model.entity.ConversationUser;
 import org.example.chatflow.model.entity.Message;
 import org.example.chatflow.model.entity.User;
 import org.example.chatflow.model.vo.MessageVO;
+import org.example.chatflow.model.vo.common.FileCommonVO;
 import org.example.chatflow.repository.ConversationRepository;
 import org.example.chatflow.repository.ConversationUserRepository;
 import org.example.chatflow.repository.MessageRepository;
@@ -22,6 +24,7 @@ import org.example.chatflow.service.FileService;
 import org.example.chatflow.service.MessageService;
 import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
+import org.example.chatflow.utils.AliOssUtil;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -68,6 +71,15 @@ public class MessageServiceImpl implements MessageService {
                 OssConstant.DEFAULT_AVATAR
         );
 
+        Set<Long> messageIds = messageList.stream()
+                .map(Message::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, FileCommonVO> messageFileMap = fileService.getBySourceMap(
+                FileSourceTypeConstant.MESSAGE_FILE,
+                messageIds
+        );
+
         List<MessageVO>  messageVOList = new ArrayList<>();
         for (Message message:messageList){
             MessageVO messageVO = MessageVO.MessageVOMapper.INSTANCE.toVO(message);
@@ -81,6 +93,7 @@ public class MessageServiceImpl implements MessageService {
             }
             messageVO.setAvatarFullUrl(avatarByUserId.get(user.getId()));
             messageVO.setDirection(direction.getCode());
+            messageVO.setMessageFile(messageFileMap.get(message.getId()));
             messageVOList.add(messageVO);
         }
         return CurlResponse.success(messageVOList);
@@ -123,13 +136,37 @@ public class MessageServiceImpl implements MessageService {
         message.setConversationId(dto.getConversationId());
         message.setSenderId(senderId);
         message.setMessageType(dto.getMessageType());
-        message.setContent(dto.getContent());
         message.setSequence(nextSequence);
         message.setStatus(1); // 1正常
         message.setSendTime(System.currentTimeMillis());
-        
+        if (dto.getMessageType() == 1){
+            message.setContent(dto.getContent());
+        }
+
         // 6. 保存消息到数据库
         messageRepository.save(message);
+
+        // 6.1 保存文件关联，并构建回显/推送用的 messageFile
+        FileCommonVO messageFile = null;
+        if (dto.getMessageType() == 2) {
+            FileCommonDTO file = dto.getMessageFile();
+            VerifyUtil.isTrue(file == null, ErrorCode.VALIDATION_ERROR);
+
+            file.setSourceType(FileSourceTypeConstant.MESSAGE_FILE);
+            file.setSourceId(message.getId());
+
+            fileService.saveFile(file);
+
+            String full = file.getFullFilePath();
+            if (full == null || full.isBlank()) {
+                full = file.getFilePath() == null ? null : OssConstant.buildFullUrl(file.getFilePath());
+            }
+
+            messageFile = FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(
+                    FileCommonDTO.FileCommonDTOMapper.INSTANCE.toEntity(file),
+                    full
+            );
+        }
         
         // 7. 更新会话的最新消息信息
         conversation.setLastMessageId(message.getId());
@@ -148,6 +185,7 @@ public class MessageServiceImpl implements MessageService {
                 .senderNickname(currentUser.getNickname())
                 .messageType(message.getMessageType())
                 .content(message.getContent())
+                .messageFile(messageFile)
                 .sequence(message.getSequence())
                 .sendTime(message.getSendTime())
                 .status(message.getStatus())
@@ -178,6 +216,7 @@ public class MessageServiceImpl implements MessageService {
         // 11. 构建返回VO
         MessageVO messageVO = MessageVO.MessageVOMapper.INSTANCE.toVO(message);
         messageVO.setDirection(Direction.USER_TO_FRIEND.getCode());
+        messageVO.setMessageFile(messageFile);
         
         return CurlResponse.success(messageVO);
     }

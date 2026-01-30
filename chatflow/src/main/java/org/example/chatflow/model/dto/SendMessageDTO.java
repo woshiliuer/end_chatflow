@@ -1,10 +1,9 @@
 package org.example.chatflow.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-
+import org.example.chatflow.model.dto.common.FileCommonDTO;
 
 
 /**
@@ -20,11 +19,13 @@ public class SendMessageDTO {
     private Long conversationId;
     
     @NotNull(message = "消息类型不能为空")
-    @Schema(description = "消息类型：1文本 2图片 3语音")
+    @Schema(description = "消息类型：1文本 2文件 3语音")
     private Integer messageType;
-    
-    @NotBlank(message = "消息内容不能为空")
+
     @Schema(description = "消息内容")
     private String content;
+
+    @Schema(description = "消息图片")
+    private FileCommonDTO messageFile;
 }
 

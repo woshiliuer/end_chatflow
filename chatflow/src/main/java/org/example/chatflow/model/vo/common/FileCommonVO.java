@@ -2,6 +2,10 @@ package org.example.chatflow.model.vo.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.example.chatflow.model.entity.FileEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 @Data
@@ -27,4 +31,13 @@ public class FileCommonVO {
 
     @Schema(description = "文件说明")
     private String fileDesc;
+
+    @Schema(description = "完整路径")
+    private String fullFilePath;
+
+    @Mapper
+    public interface FileCommonVOMapper{
+        FileCommonVOMapper INSTANCE = Mappers.getMapper(FileCommonVOMapper.class);
+        FileCommonVO toVO(FileEntity file,String fullFilePath);
+    }
 }

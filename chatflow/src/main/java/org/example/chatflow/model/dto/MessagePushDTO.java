@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.chatflow.model.vo.common.FileCommonVO;
 
 /**
  * WebSocket消息推送DTO
@@ -43,6 +44,9 @@ public class MessagePushDTO {
     
     @Schema(description = "消息内容")
     private String content;
+
+    @Schema(description = "消息文件")
+    private FileCommonVO messageFile;
     
     @Schema(description = "序号")
     private Long sequence;

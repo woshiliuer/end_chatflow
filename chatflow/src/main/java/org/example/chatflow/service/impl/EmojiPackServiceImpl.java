@@ -9,8 +9,6 @@ import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,7 +20,7 @@ public class EmojiPackServiceImpl implements EmojiPackService {
 
     @Override
     public Map<Long, EmojiPack> findPackByIds(Set<Long> ids) {
-        return emojiPackRepository.findPackByIds(ids);
+        return emojiPackRepository.findPackMapByIds(ids);
     }
 
     @Override

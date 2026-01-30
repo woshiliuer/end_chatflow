@@ -25,7 +25,7 @@ public class EmojiPackRepositoryImpl
     }
 
     @Override
-    public Map<Long, EmojiPack> findPackByIds(Set<Long> ids) {
+    public Map<Long, EmojiPack> findPackMapByIds(Set<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -34,5 +34,17 @@ public class EmojiPackRepositoryImpl
             return Collections.emptyMap();
         }
         return emojiPacks.stream().collect(Collectors.toMap((e) -> e.getId(), (e) -> e));
+    }
+
+    @Override
+    public List<EmojiPack> findPackByIds(Set<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<EmojiPack> emojiPacks = this.findByIds(ids.stream().toList());
+        if (emojiPacks == null) {
+            return Collections.emptyList();
+        }
+        return emojiPacks;
     }
 }

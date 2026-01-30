@@ -6,11 +6,16 @@ public class FileSourceTypeConstant {
 
     public static final String GROUP_AVATAR = "GROUP_AVATAR";
 
+    /**
+     * 表情包封面
+     */
     public static final String EMOJI_PACK_COVER = "EMOJI_PACK_COVER";
 
     public static final String EMOJI_ITEM_GIF = "EMOJI_ITEM_GIF";
 
     public static final String EMOJI_ITEM_STATIC = "EMOJI_ITEM_STATIC";
+
+    public static final String MESSAGE_FILE = "MESSAGE_FILE";
 
     private FileSourceTypeConstant() {
     }

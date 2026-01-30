@@ -138,8 +138,9 @@ public class FileServiceImpl implements FileService {
             if (entity == null || entity.getSourceId() == null) {
                 continue;
             }
-            FileCommonVO vo = FileCommonVO
-            result.putIfAbsent(entity.getSourceId(), entity);
+            FileCommonVO vo = FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(entity,OssConstant.buildFullUrl(entity.getFilePath()));
+            result.putIfAbsent(entity.getSourceId(), vo);
         }
+        return result;
     }
 }

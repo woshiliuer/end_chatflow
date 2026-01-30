@@ -23,12 +23,6 @@ public class ChatGroup extends BaseEntity<Long> {
     private String groupName;
 
     /**
-     * 群头像 URL
-     */
-    @TableField("group_avatar_url")
-    private String groupAvatarUrl;
-
-    /**
      * 群简介
      */
     @TableField("introduction")

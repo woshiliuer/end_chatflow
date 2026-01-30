@@ -1,8 +1,12 @@
 package org.example.chatflow.model.vo.Emoji;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.example.chatflow.model.entity.EmojiItem;
 import org.example.chatflow.model.vo.common.FileCommonVO;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
 @Data
 @Schema(description = "表情包项列表")
@@ -21,4 +25,11 @@ public class EmojiItemListVO {
 
     @Schema(description = "unicode")
     private String unicodeVal;
+
+    @Mapper
+    public interface EmojiItemListVOMapper {
+        EmojiItemListVOMapper INSTANCE = Mappers.getMapper(EmojiItemListVOMapper.class);
+
+        EmojiItemListVO toVO(EmojiItem entity);
+    }
 }
