@@ -1,15 +1,19 @@
 package org.example.chatflow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.entity.CurlResponse;
+import org.example.chatflow.common.enums.EmojiPackType;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.mapper.EmojiItemMapper;
+import org.example.chatflow.mapper.EmojiPackMapper;
 import org.example.chatflow.model.dto.Emoji.AddEmojiFromMessageFileDTO;
 import org.example.chatflow.model.dto.Emoji.CustomizeEmojiDTO;
+import org.example.chatflow.model.dto.Emoji.EmojiPackSearchDTO;
 import org.example.chatflow.model.dto.common.FileCommonDTO;
 import org.example.chatflow.model.entity.*;
 import org.example.chatflow.model.vo.Emoji.CustomizeEmojisVO;
@@ -24,6 +28,7 @@ import org.example.chatflow.service.*;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.AliOssUtil;
 import org.example.chatflow.utils.VerifyUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,6 +45,8 @@ import java.util.stream.Collectors;
 public class EmojiServiceImpl implements EmojiService {
 
     private final AliOssUtil aliOssUtil;
+
+    private final EmojiPackMapper emojiPackMapper;
 
     private final EmojiPackRepository emojiPackRepository;
 
@@ -140,8 +147,37 @@ public class EmojiServiceImpl implements EmojiService {
     }
 
     @Override
-    public CurlResponse<EmojiPackListVO> emojiPackList() {
-        return null;
+    public CurlResponse<Page<EmojiPackListVO>> emojiPackList(EmojiPackSearchDTO dto) {
+        VerifyUtil.isTrue(dto == null, ErrorCode.VALIDATION_ERROR);
+        VerifyUtil.isTrue(dto.getPage() == null || dto.getPage() < 1, ErrorCode.VALIDATION_ERROR);
+        VerifyUtil.isTrue(dto.getSize() == null || dto.getSize() < 1, ErrorCode.VALIDATION_ERROR);
+
+        String name = StringUtils.trimToNull(dto.getName());
+
+        LambdaQueryWrapper<EmojiPack> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(EmojiPack::getType, EmojiPackType.OFFICIAL.getCode());
+        if (name != null) {
+            wrapper.like(EmojiPack::getName, name);
+        }
+        wrapper.orderByDesc(EmojiPack::getCreateTime);
+
+        Page<EmojiPack> page = new Page<>(dto.getPage(), dto.getSize());
+        Page<EmojiPack> entityPage = emojiPackMapper.selectPage(page, wrapper);
+
+        List<EmojiPack> records = entityPage.getRecords() == null ? Collections.emptyList() : entityPage.getRecords();
+        Set<Long> packIds = records.stream().map(EmojiPack::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<Long, FileCommonVO> coverMap = fileService.getBySourceMap(FileSourceTypeConstant.EMOJI_PACK_COVER, packIds);
+
+        List<EmojiPackListVO> voRecords = new ArrayList<>();
+        for (EmojiPack pack : records) {
+            EmojiPackListVO vo = EmojiPackListVO.EmojiPackListVOMapper.INSTANCE.toVO(pack);
+            vo.setCover(coverMap.get(pack.getId()));
+            voRecords.add(vo);
+        }
+
+        Page<EmojiPackListVO> voPage = new Page<>(entityPage.getCurrent(), entityPage.getSize(), entityPage.getTotal());
+        voPage.setRecords(voRecords);
+        return CurlResponse.success(voPage);
     }
 
     @Override

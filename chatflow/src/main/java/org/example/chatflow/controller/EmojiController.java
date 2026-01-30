@@ -7,10 +7,11 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.model.dto.Emoji.AddEmojiFromMessageFileDTO;
 import org.example.chatflow.model.dto.Emoji.CustomizeEmojiDTO;
-import org.example.chatflow.model.dto.Emoji.EmojiItemListDTO;
+import org.example.chatflow.model.dto.Emoji.EmojiPackSearchDTO;
 import org.example.chatflow.model.vo.Emoji.CustomizeEmojisVO;
 import org.example.chatflow.model.vo.Emoji.EmojiItemListVO;
 import org.example.chatflow.model.vo.Emoji.EmojiPackListVO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.example.chatflow.service.EmojiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,8 +43,8 @@ public class EmojiController {
 
     @Operation(summary = "搜索表情包")
     @PostMapping("/emojiPackList")
-    public CurlResponse<EmojiPackListVO> emojiPackList(@RequestBody EmojiItemListDTO dto){
-        return emojiService.emojiPackList();
+    public CurlResponse<Page<EmojiPackListVO>> emojiPackList(@RequestBody @Validated EmojiPackSearchDTO dto){
+        return emojiService.emojiPackList(dto);
     }
 
     @Operation(summary = "用户绑定表情包",description = "参数传表情包Id")

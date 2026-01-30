@@ -3,9 +3,11 @@ package org.example.chatflow.service;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.model.dto.Emoji.AddEmojiFromMessageFileDTO;
 import org.example.chatflow.model.dto.Emoji.CustomizeEmojiDTO;
+import org.example.chatflow.model.dto.Emoji.EmojiPackSearchDTO;
 import org.example.chatflow.model.vo.Emoji.CustomizeEmojisVO;
 import org.example.chatflow.model.vo.Emoji.EmojiItemListVO;
 import org.example.chatflow.model.vo.Emoji.EmojiPackListVO;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import java.util.List;
 
@@ -15,7 +17,7 @@ public interface EmojiService {
 
     CurlResponse<List<EmojiItemListVO>> emojiItems(Long param);
 
-    CurlResponse<EmojiPackListVO> emojiPackList();
+    CurlResponse<Page<EmojiPackListVO>> emojiPackList(EmojiPackSearchDTO dto);
 
     CurlResponse<Void> unbindEmojiPack(Long param);
 
