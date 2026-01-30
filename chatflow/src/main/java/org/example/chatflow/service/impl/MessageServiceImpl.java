@@ -157,14 +157,9 @@ public class MessageServiceImpl implements MessageService {
 
             fileService.saveFile(file);
 
-            String full = file.getFullFilePath();
-            if (full == null || full.isBlank()) {
-                full = file.getFilePath() == null ? null : OssConstant.buildFullUrl(file.getFilePath());
-            }
-
             messageFile = FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(
                     FileCommonDTO.FileCommonDTOMapper.INSTANCE.toEntity(file),
-                    full
+                    OssConstant.buildFullUrl(file.getFilePath())
             );
         }
         

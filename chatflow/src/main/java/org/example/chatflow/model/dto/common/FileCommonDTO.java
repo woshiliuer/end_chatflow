@@ -33,9 +33,6 @@ public class FileCommonDTO {
     @Schema(description = "文件说明")
     private String fileDesc;
 
-    @Schema(description = "完整路径")
-    private String fullFilePath;
-
     @Mapper
     public interface FileCommonDTOMapper {
         FileCommonDTOMapper INSTANCE = org.mapstruct.factory.Mappers.getMapper(FileCommonDTOMapper.class);

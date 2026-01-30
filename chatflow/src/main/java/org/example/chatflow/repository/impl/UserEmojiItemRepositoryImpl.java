@@ -27,4 +27,23 @@ public class UserEmojiItemRepositoryImpl
             .orderByAsc(UserEmojiItem::getId)
             .list();
     }
+
+    @Override
+    public Integer getNextSortValue(Long userId) {
+        if (userId == null) {
+            return 1; // 默认从1开始
+        }
+
+        // 查询最大的 sort 值
+        Integer maxSort = lambdaQuery()
+                .eq(UserEmojiItem::getUserId, userId)
+                .select(UserEmojiItem::getSort)
+                .orderByDesc(UserEmojiItem::getSort)
+                .last("LIMIT 1")
+                .oneOpt()
+                .map(UserEmojiItem::getSort)
+                .orElse(0); // 如果没找到，默认从0开始
+
+        return maxSort + 1;
+    }
 }

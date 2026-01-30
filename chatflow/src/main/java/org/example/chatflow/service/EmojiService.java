@@ -2,9 +2,9 @@ package org.example.chatflow.service;
 
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.model.dto.Emoji.CustomizeEmojiDTO;
+import org.example.chatflow.model.vo.Emoji.CustomizeEmojisVO;
 import org.example.chatflow.model.vo.Emoji.EmojiItemListVO;
 import org.example.chatflow.model.vo.Emoji.EmojiPackListVO;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public interface EmojiService {
 
     CurlResponse<Void> unbindEmojiItem(Long param);
 
-    CurlResponse<Void> customizeEmoji(CustomizeEmojiDTO dto);
+    CurlResponse<Void> addCustomizeEmoji(CustomizeEmojiDTO dto);
 
-    CurlResponse<Void> uploadEmoji(MultipartFile file);
+    CurlResponse<List<CustomizeEmojisVO>> customizeEmojis();
 }

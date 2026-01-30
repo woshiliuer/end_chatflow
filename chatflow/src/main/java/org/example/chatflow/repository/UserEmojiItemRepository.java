@@ -10,4 +10,6 @@ import java.util.List;
 public interface UserEmojiItemRepository extends BaseRepository<UserEmojiItem, Long> {
 
     List<UserEmojiItem> findByUserId(Long userId);
+
+    Integer getNextSortValue(Long userId);
 }

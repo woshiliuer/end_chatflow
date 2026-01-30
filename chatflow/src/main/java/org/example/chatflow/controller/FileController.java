@@ -46,6 +46,32 @@ public class FileController {
         return CurlResponse.success(vo);
     }
 
+    @Operation(summary = "上传文件，自定义表情包")
+    @PostMapping("/customizeEmoji/upload")
+    public CurlResponse<FileCommonVO> customizeEmojiUpload(@RequestParam("file") MultipartFile file) {
+        VerifyUtil.isTrue(file == null || file.isEmpty(), ErrorCode.FILE_IS_NULL);
+
+        String objectName = AliOssUtil.buildFileName("emjio/customize", file.getOriginalFilename());
+        String url = aliOssUtil.upload(file, objectName);
+        String objectKey = AliOssUtil.toObjectKey(url);
+
+        FileEntity entity = new FileEntity();
+        entity.setSourceType(FileSourceTypeConstant.CUSTOMIZE_EMOJI);
+        entity.setSourceId(null);
+        entity.setFileType(extractFileType(file.getOriginalFilename()));
+        entity.setFileName(file.getOriginalFilename());
+        entity.setFileSize(file.getSize());
+        entity.setFilePath(objectKey);
+        entity.setFileDesc(null);
+
+        FileCommonVO vo = FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(entity, url);
+        return CurlResponse.success(vo);
+    }
+
+
+
+
+
     private String extractFileType(String originalFilename) {
         String filename = StringUtils.trimToEmpty(originalFilename);
         if (!filename.contains(".")) {

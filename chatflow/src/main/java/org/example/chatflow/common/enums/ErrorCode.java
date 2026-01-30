@@ -45,8 +45,8 @@ public enum ErrorCode {
     USER_NOT_FOUND("1033", "用户不存在"),
     CONVERSATION_USER_NOT_FOUND("1034", "会话参与者不存在"),
     GROUP_NOT_EXISTS("1035", "群聊不存在"),
-    CONVERSATION_SELF_NOT_ALLOWED("1036", "不能和自己创建会话")
-
+    CONVERSATION_SELF_NOT_ALLOWED("1036", "不能和自己创建会话"),
+    EMOJI_NOT_FOUND("1037","表情包不存在")
     ;
 
     private final String code;

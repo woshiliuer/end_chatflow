@@ -8,13 +8,13 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.model.dto.Emoji.CustomizeEmojiDTO;
 import org.example.chatflow.model.dto.Emoji.EmojiItemListDTO;
+import org.example.chatflow.model.vo.Emoji.CustomizeEmojisVO;
 import org.example.chatflow.model.vo.Emoji.EmojiItemListVO;
 import org.example.chatflow.model.vo.Emoji.EmojiPackListVO;
 import org.example.chatflow.service.EmojiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class EmojiController {
         return emojiService.unbindEmojiPack(param.getParam());
     }
 
-    @Operation(summary = "用户收藏表情",description = "参数传表情项Id")
+    @Operation(summary = "用户绑定自定义表情",description = "参数传表情项Id")
     @PostMapping("/bindEmojiItem")
     public CurlResponse<Void> collectEmojiItem(@RequestBody @Validated Param<Long> param){
         return emojiService.collectEmojiItem(param.getParam());
@@ -71,15 +71,15 @@ public class EmojiController {
     }
 
     @Operation(summary = "用户添加自定义表情")
-    @PostMapping("/customizeEmoji")
-    public CurlResponse<Void> customizeEmoji(@RequestBody @Validated CustomizeEmojiDTO dto){
-        return emojiService.customizeEmoji(dto);
+    @PostMapping("/addCustomizeEmoji")
+    public CurlResponse<Void> addCustomizeEmoji(@RequestBody @Validated CustomizeEmojiDTO dto){
+        return emojiService.addCustomizeEmoji(dto);
     }
 
-    @Operation(summary = "上传自定义表情包文件")
-    @PostMapping("/uploadEmoji")
-    public CurlResponse<Void> uploadEmoji(@RequestParam("file") MultipartFile file){
-        return emojiService.uploadEmoji(file);
+    @Operation(summary = "用户的自定义表情包")
+    @GetMapping("/customizeEmojis")
+    public CurlResponse<List<CustomizeEmojisVO>> customizeEmojis(){
+        return emojiService.customizeEmojis();
     }
 
 }

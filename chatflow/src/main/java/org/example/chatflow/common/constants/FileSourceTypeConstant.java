@@ -17,6 +17,11 @@ public class FileSourceTypeConstant {
 
     public static final String MESSAGE_FILE = "MESSAGE_FILE";
 
+    /**
+     * 自定义表情包
+     */
+    public static final String CUSTOMIZE_EMOJI = "CUSTOMIZE_EMOJI";
+
     private FileSourceTypeConstant() {
     }
 }

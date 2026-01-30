@@ -5,29 +5,29 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.entity.CurlResponse;
+import org.example.chatflow.common.enums.ErrorCode;
+import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.mapper.EmojiItemMapper;
 import org.example.chatflow.model.dto.Emoji.CustomizeEmojiDTO;
-import org.example.chatflow.model.entity.EmojiItem;
-import org.example.chatflow.model.entity.EmojiPack;
-import org.example.chatflow.model.entity.User;
-import org.example.chatflow.model.entity.UserEmojiPack;
+import org.example.chatflow.model.dto.common.FileCommonDTO;
+import org.example.chatflow.model.entity.*;
+import org.example.chatflow.model.vo.Emoji.CustomizeEmojisVO;
 import org.example.chatflow.model.vo.Emoji.EmojiItemListVO;
 import org.example.chatflow.model.vo.Emoji.EmojiPackListVO;
 import org.example.chatflow.model.vo.common.FileCommonVO;
 import org.example.chatflow.repository.EmojiItemRepository;
 import org.example.chatflow.repository.EmojiPackRepository;
+import org.example.chatflow.repository.UserEmojiItemRepository;
 import org.example.chatflow.repository.UserEmojiPackRepository;
 import org.example.chatflow.service.*;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.AliOssUtil;
+import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -51,6 +51,8 @@ public class EmojiServiceImpl implements EmojiService {
     private final CurrentUserAccessor currentUserAccessor;
 
     private final UserEmojiPackRepository userEmojiPackRepository;
+
+    private final UserEmojiItemRepository  userEmojiItemRepository;
 
     @Override
     public CurlResponse<List<EmojiPackListVO>> myEmojiPackList() {
@@ -117,7 +119,18 @@ public class EmojiServiceImpl implements EmojiService {
 
     @Override
     public CurlResponse<Void> collectEmojiItem(Long param) {
-        return null;
+        // 1. 验证表情包是否存在
+        emojiItemRepository.findById(param)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EMOJI_NOT_FOUND));
+        //个人绑定和表情包关系
+        Long currentUserId = currentUserAccessor.getCurrentUser().getId();
+        Integer nestSort = userEmojiItemRepository.getNextSortValue(currentUserId);
+        UserEmojiItem userEmojiItem = new UserEmojiItem();
+        userEmojiItem.setUserId(currentUserId);
+        userEmojiItem.setItemId(param);
+        userEmojiItem.setSort(nestSort);
+        userEmojiItemRepository.save(userEmojiItem);
+        return CurlResponse.success();
     }
 
     @Override
@@ -126,12 +139,44 @@ public class EmojiServiceImpl implements EmojiService {
     }
 
     @Override
-    public CurlResponse<Void> customizeEmoji(CustomizeEmojiDTO dto) {
-        return null;
+    public CurlResponse<Void> addCustomizeEmoji(CustomizeEmojiDTO dto) {
+        EmojiItem emojiItem = new  EmojiItem();
+        emojiItem.setName(dto.getName());
+        emojiItem.setType(dto.getType());
+        //保存表情包项
+        emojiItemRepository.save(emojiItem);
+        //保存文件
+        dto.getFile().setSourceId(emojiItem.getId());
+        fileService.saveFile(dto.getFile());
+        //个人绑定和表情包关系
+        Long currentUserId = currentUserAccessor.getCurrentUser().getId();
+        Integer nestSort = userEmojiItemRepository.getNextSortValue(currentUserId);
+
+        UserEmojiItem userEmojiItem = new UserEmojiItem();
+        userEmojiItem.setUserId(currentUserId);
+        userEmojiItem.setItemId(emojiItem.getId());
+        userEmojiItem.setSort(nestSort);
+        userEmojiItemRepository.save(userEmojiItem);
+        return CurlResponse.success();
     }
 
     @Override
-    public CurlResponse<Void> uploadEmoji(MultipartFile file) {
-        return null;
+    public CurlResponse<List<CustomizeEmojisVO>> customizeEmojis() {
+        Long currentUserId = currentUserAccessor.getCurrentUser().getId();
+        List<UserEmojiItem> userEmojiItems = userEmojiItemRepository.findByUserId(currentUserId);
+        Set<Long> itemIds = userEmojiItems.stream().map(UserEmojiItem::getItemId).collect(Collectors.toSet());
+        List<EmojiItem> items = emojiItemRepository.findByIds(itemIds);
+        List<CustomizeEmojisVO> customizeEmojisVOS = new ArrayList<>();
+        Map<Long, FileCommonVO> fileMap = fileService.getBySourceMap(FileSourceTypeConstant.CUSTOMIZE_EMOJI,itemIds);
+        for (EmojiItem emojiItem : items) {
+            CustomizeEmojisVO vo = new  CustomizeEmojisVO();
+            vo.setName(emojiItem.getName());
+            vo.setType(emojiItem.getType());
+            vo.setId(emojiItem.getId());
+            FileCommonVO fileCommonVO = fileMap.get(emojiItem.getId());
+            vo.setFile(fileCommonVO);
+            customizeEmojisVOS.add(vo);
+        }
+        return CurlResponse.success(customizeEmojisVOS);
     }
 }
