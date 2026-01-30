@@ -21,6 +21,12 @@ public class EmojiPack extends BaseEntity<Long> {
     private String name;
 
     /**
+     * 表情包类型：1默认表情包 2自定义表情包
+     */
+    @TableField("type")
+    private Integer type;
+
+    /**
      * 更新人ID
      */
     @TableField(value = "update_user_id", fill = FieldFill.UPDATE)

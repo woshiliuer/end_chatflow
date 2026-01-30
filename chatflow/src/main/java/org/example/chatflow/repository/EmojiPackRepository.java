@@ -16,4 +16,6 @@ public interface EmojiPackRepository extends BaseRepository<EmojiPack, Long> {
     Map<Long, EmojiPack> findPackMapByIds(Set<Long> ids);
 
     List<EmojiPack> findPackByIds(Set<Long> ids);
+
+    EmojiPack findDefalt();
 }

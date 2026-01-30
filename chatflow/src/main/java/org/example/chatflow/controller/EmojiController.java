@@ -1,11 +1,11 @@
 package org.example.chatflow.controller;
 
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
+import org.example.chatflow.model.dto.Emoji.AddEmojiFromMessageFileDTO;
 import org.example.chatflow.model.dto.Emoji.CustomizeEmojiDTO;
 import org.example.chatflow.model.dto.Emoji.EmojiItemListDTO;
 import org.example.chatflow.model.vo.Emoji.CustomizeEmojisVO;
@@ -58,12 +58,6 @@ public class EmojiController {
         return emojiService.unbindEmojiPack(param.getParam());
     }
 
-    @Operation(summary = "用户绑定自定义表情",description = "参数传表情项Id")
-    @PostMapping("/bindEmojiItem")
-    public CurlResponse<Void> collectEmojiItem(@RequestBody @Validated Param<Long> param){
-        return emojiService.collectEmojiItem(param.getParam());
-    }
-
     @Operation(summary = "用户删除表情",description = "参数传表情项Id")
     @PostMapping("/unbindEmojiItem")
     public CurlResponse<Void> unbindEmojiItem(@RequestBody @Validated Param<Long> param){
@@ -76,10 +70,15 @@ public class EmojiController {
         return emojiService.addCustomizeEmoji(dto);
     }
 
+    @Operation(summary = "从消息图片添加为自定义表情")
+    @PostMapping("/addEmojiFromMessageFile")
+    public CurlResponse<Void> addEmojiFromMessageFile(@RequestBody @Validated AddEmojiFromMessageFileDTO dto) {
+        return emojiService.addEmojiFromMessageFile(dto);
+    }
+
     @Operation(summary = "用户的自定义表情包")
     @GetMapping("/customizeEmojis")
     public CurlResponse<List<CustomizeEmojisVO>> customizeEmojis(){
         return emojiService.customizeEmojis();
     }
-
 }

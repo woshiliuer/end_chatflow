@@ -1,5 +1,7 @@
 package org.example.chatflow.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import org.example.chatflow.common.enums.EmojiPackType;
 import org.example.chatflow.mapper.EmojiPackMapper;
 import org.example.chatflow.model.entity.EmojiPack;
 import org.example.chatflow.repository.EmojiPackRepository;
@@ -46,5 +48,12 @@ public class EmojiPackRepositoryImpl
             return Collections.emptyList();
         }
         return emojiPacks;
+    }
+
+    @Override
+    public EmojiPack findDefalt() {
+        LambdaQueryWrapper<EmojiPack> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(EmojiPack::getType, EmojiPackType.DEFAULT.getCode());
+        return this.getOne(wrapper);
     }
 }

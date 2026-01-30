@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum EmojiType {
+public enum EmojiItemType {
     UNICODE(1, "unicode"),
     STATIC_IMAGE(2, "静态图"),
     GIF(3, "动图");
@@ -16,13 +16,13 @@ public enum EmojiType {
     private final Integer code;
     private final String description;
 
-    public static EmojiType fromCode(Integer code) {
+    public static EmojiItemType fromCode(Integer code) {
         if (code == null) {
             return null;
         }
-        for (EmojiType emojiType : EmojiType.values()) {
-            if (emojiType.code.equals(code)) {
-                return emojiType;
+        for (EmojiItemType emojiItemType : EmojiItemType.values()) {
+            if (emojiItemType.code.equals(code)) {
+                return emojiItemType;
             }
         }
         return null;

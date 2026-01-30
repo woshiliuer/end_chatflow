@@ -51,7 +51,7 @@ public class FileController {
     public CurlResponse<FileCommonVO> customizeEmojiUpload(@RequestParam("file") MultipartFile file) {
         VerifyUtil.isTrue(file == null || file.isEmpty(), ErrorCode.FILE_IS_NULL);
 
-        String objectName = AliOssUtil.buildFileName("emjio/customize", file.getOriginalFilename());
+        String objectName = AliOssUtil.buildFileName("emoji/customize", file.getOriginalFilename());
         String url = aliOssUtil.upload(file, objectName);
         String objectKey = AliOssUtil.toObjectKey(url);
 
@@ -67,10 +67,6 @@ public class FileController {
         FileCommonVO vo = FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(entity, url);
         return CurlResponse.success(vo);
     }
-
-
-
-
 
     private String extractFileType(String originalFilename) {
         String filename = StringUtils.trimToEmpty(originalFilename);

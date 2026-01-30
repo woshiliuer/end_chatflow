@@ -17,6 +17,9 @@ public class EmojiPackListVO {
     @Schema(description = "表情包名称")
     private String name;
 
+    @Schema(description = "表情包类型：1默认表情包 2自定义表情包")
+    private Integer type;
+
     @Schema(description = "序号")
     private Integer sort;
 

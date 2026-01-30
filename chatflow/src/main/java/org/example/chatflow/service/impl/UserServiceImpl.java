@@ -17,9 +17,13 @@ import org.example.chatflow.model.dto.User.LoginDTO;
 import org.example.chatflow.model.dto.User.RecoverPasswordDTO;
 import org.example.chatflow.model.dto.User.RegisterDTO;
 import org.example.chatflow.model.dto.User.UpdateUserInfoDTO;
+import org.example.chatflow.model.entity.EmojiPack;
 import org.example.chatflow.model.entity.User;
+import org.example.chatflow.model.entity.UserEmojiPack;
 import org.example.chatflow.model.vo.UserByEmailVO;
 import org.example.chatflow.model.vo.UserInfoVO;
+import org.example.chatflow.repository.EmojiPackRepository;
+import org.example.chatflow.repository.UserEmojiPackRepository;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.FileService;
 import org.example.chatflow.service.UserService;
@@ -55,7 +59,8 @@ public class UserServiceImpl implements UserService {
     private final VerifyCodeStrategyFactory verifyCodeStrategyFactory;
     private final CurrentUserAccessor currentUserAccessor;
     private final OnlineUserService onlineUserService;
-
+    private final EmojiPackRepository emojiPackRepository;
+    private final UserEmojiPackRepository userEmojiPackRepository;
     /**
      * 登录
      */
@@ -96,6 +101,7 @@ public class UserServiceImpl implements UserService {
      * 注册
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public CurlResponse<String> register(RegisterDTO dto) {
         //验证用户是否重复
         String email = StringUtils.trimToEmpty(dto.getEmail());
@@ -131,6 +137,13 @@ public class UserServiceImpl implements UserService {
         ));
         //删除验证码
         redisUtil.del(redisKey);
+        //初始化表情包库
+        EmojiPack emojiPack = emojiPackRepository.findDefalt();
+        UserEmojiPack userEmojiPack = new UserEmojiPack();
+        userEmojiPack.setUserId(user.getId());
+        userEmojiPack.setPackId(emojiPack.getId());
+        userEmojiPack.setSort(1);
+        userEmojiPackRepository.save(userEmojiPack);
         return CurlResponse.success("注册成功");
     }
 
