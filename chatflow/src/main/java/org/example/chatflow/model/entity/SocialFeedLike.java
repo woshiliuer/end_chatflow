@@ -15,11 +15,14 @@ import org.example.chatflow.common.entity.BaseEntity;
 @Data
 public class SocialFeedLike extends BaseEntity<Long> {
 
-    @TableField("post_id")
-    private Long postId;
+    @TableField("feed_id")
+    private Long feedId;
 
     @TableField("user_id")
     private Long userId;
+
+    @TableField("status")
+    private Integer status;
 
     @TableField(value = "update_user_id", fill = FieldFill.UPDATE)
     private Long updateUserId;

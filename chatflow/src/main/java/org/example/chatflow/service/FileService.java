@@ -20,6 +20,8 @@ public interface FileService {
 
     Map<Long, FileCommonVO> getBySourceMap(String sourceType, Collection<Long> sourceIds);
 
+    List<FileCommonVO> listBySource(String sourceType, Long sourceId);
+
     boolean saveFile(FileCommonDTO fileCommonDTO);
 
     boolean updateFile(FileCommonDTO dto);

@@ -12,9 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -142,5 +144,16 @@ public class FileServiceImpl implements FileService {
             result.putIfAbsent(entity.getSourceId(), vo);
         }
         return result;
+    }
+
+    @Override
+    public List<FileCommonVO> listBySource(String sourceType, Long sourceId) {
+        List<FileEntity> entities = fileRepository.findBySource(sourceType, sourceId);
+        if (entities == null || entities.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return entities.stream()
+            .map(e -> FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(e, OssConstant.buildFullUrl(e.getFilePath())))
+            .collect(Collectors.toList());
     }
 }

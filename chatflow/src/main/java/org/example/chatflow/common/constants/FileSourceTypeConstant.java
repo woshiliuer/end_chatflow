@@ -22,6 +22,11 @@ public class FileSourceTypeConstant {
      */
     public static final String CUSTOMIZE_EMOJI = "CUSTOMIZE_EMOJI";
 
+    /**
+     * 社交动态文件
+     */
+    public static final String SOCIAL_FEED_FILE = "SOCIAL_FEED_FILE";
+
     private FileSourceTypeConstant() {
     }
 }

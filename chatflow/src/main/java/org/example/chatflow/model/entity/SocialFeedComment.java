@@ -15,8 +15,8 @@ import org.example.chatflow.common.entity.BaseEntity;
 @Data
 public class SocialFeedComment extends BaseEntity<Long> {
 
-    @TableField("post_id")
-    private Long postId;
+    @TableField("feed_id")
+    private Long feedId;
 
     @TableField("user_id")
     private Long userId;

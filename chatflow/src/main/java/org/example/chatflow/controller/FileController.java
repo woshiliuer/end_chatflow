@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/file")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -44,6 +47,56 @@ public class FileController {
 
         FileCommonVO vo = FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(entity, url);
         return CurlResponse.success(vo);
+    }
+
+    @Operation(summary = "上传文件，动态相关文件")
+    @PostMapping("/socialFeed/upload")
+    public CurlResponse<FileCommonVO> socialFeedUpload(@RequestParam("file") MultipartFile file) {
+        VerifyUtil.isTrue(file == null || file.isEmpty(), ErrorCode.FILE_IS_NULL);
+
+        String objectName = AliOssUtil.buildFileName("social/feed", file.getOriginalFilename());
+        String url = aliOssUtil.upload(file, objectName);
+        String objectKey = AliOssUtil.toObjectKey(url);
+
+        FileEntity entity = new FileEntity();
+        entity.setSourceType(FileSourceTypeConstant.SOCIAL_FEED_FILE);
+        entity.setSourceId(null);
+        entity.setFileType(extractFileType(file.getOriginalFilename()));
+        entity.setFileName(file.getOriginalFilename());
+        entity.setFileSize(file.getSize());
+        entity.setFilePath(objectKey);
+        entity.setFileDesc(null);
+
+        FileCommonVO vo = FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(entity, url);
+        return CurlResponse.success(vo);
+    }
+
+    @Operation(summary = "上传文件(批量)，动态相关文件")
+    @PostMapping("/socialFeed/uploadBatch")
+    public CurlResponse<List<FileCommonVO>> socialFeedUploadBatch(@RequestParam("files") MultipartFile[] files) {
+        VerifyUtil.isTrue(files == null || files.length == 0, ErrorCode.FILE_IS_NULL);
+
+        List<FileCommonVO> result = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
+            String objectName = AliOssUtil.buildFileName("social/feed", file.getOriginalFilename());
+            String url = aliOssUtil.upload(file, objectName);
+            String objectKey = AliOssUtil.toObjectKey(url);
+
+            FileEntity entity = new FileEntity();
+            entity.setSourceType(FileSourceTypeConstant.SOCIAL_FEED_FILE);
+            entity.setSourceId(null);
+            entity.setFileType(extractFileType(file.getOriginalFilename()));
+            entity.setFileName(file.getOriginalFilename());
+            entity.setFileSize(file.getSize());
+            entity.setFilePath(objectKey);
+            entity.setFileDesc(null);
+
+            result.add(FileCommonVO.FileCommonVOMapper.INSTANCE.toVO(entity, url));
+        }
+        return CurlResponse.success(result);
     }
 
     @Operation(summary = "上传文件，自定义表情包")
