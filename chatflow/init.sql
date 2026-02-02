@@ -264,3 +264,45 @@ CREATE TABLE file
 ) COMMENT '文件表' ROW_FORMAT = DYNAMIC ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 create index idx_source_type_id on file (source_type, source_id);
+
+CREATE TABLE IF NOT EXISTS `social_feed` (
+     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+     `content` TEXT NULL COMMENT '动态正文',
+     `create_user_id` BIGINT NOT NULL COMMENT '创建人ID',
+     `create_by` VARCHAR(64) NULL COMMENT '创建人名称',
+     `create_time` BIGINT NOT NULL COMMENT '创建时间',
+     `update_user_id` BIGINT NULL COMMENT '更新人ID',
+     `update_by` VARCHAR(64) NULL COMMENT '更新人名称',
+     `update_time` BIGINT NULL COMMENT '更新时间',
+     `deleted` INT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0否 1是',
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='社交动态-主表';
+
+CREATE TABLE IF NOT EXISTS `social_feed_like` (
+      `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+      `post_id` BIGINT NOT NULL COMMENT '动态ID',
+      `user_id` BIGINT NOT NULL COMMENT '点赞用户ID',
+      `create_user_id` BIGINT NOT NULL,
+      `create_by` VARCHAR(64) NULL,
+      `create_time` BIGINT NOT NULL,
+      `update_user_id` BIGINT NULL,
+      `update_by` VARCHAR(64) NULL,
+      `update_time` BIGINT NULL,
+      `deleted` INT NOT NULL DEFAULT 0,
+      PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='社交动态-点赞表';
+
+CREATE TABLE IF NOT EXISTS `social_feed_comment` (
+     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键',
+     `post_id` BIGINT NOT NULL COMMENT '动态ID',
+     `user_id` BIGINT NOT NULL COMMENT '评论用户ID',
+     `content` VARCHAR(2000) NOT NULL COMMENT '评论内容',
+     `create_user_id` BIGINT NOT NULL,
+     `create_by` VARCHAR(64) NULL,
+     `create_time` BIGINT NOT NULL,
+     `update_user_id` BIGINT NULL,
+     `update_by` VARCHAR(64) NULL,
+     `update_time` BIGINT NULL,
+     `deleted` INT NOT NULL DEFAULT 0,
+     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='社交动态-评论表';
