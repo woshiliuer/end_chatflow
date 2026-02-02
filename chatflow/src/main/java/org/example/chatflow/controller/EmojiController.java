@@ -59,12 +59,6 @@ public class EmojiController {
         return emojiService.unbindEmojiPack(param.getParam());
     }
 
-    @Operation(summary = "用户删除表情",description = "参数传表情项Id")
-    @PostMapping("/unbindEmojiItem")
-    public CurlResponse<Void> unbindEmojiItem(@RequestBody @Validated Param<Long> param){
-        return emojiService.unbindEmojiItem(param.getParam());
-    }
-
     @Operation(summary = "用户添加自定义表情")
     @PostMapping("/addCustomizeEmoji")
     public CurlResponse<Void> addCustomizeEmoji(@RequestBody @Validated CustomizeEmojiDTO dto){

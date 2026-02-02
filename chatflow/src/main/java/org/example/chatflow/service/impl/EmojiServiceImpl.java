@@ -23,7 +23,6 @@ import org.example.chatflow.model.vo.common.FileCommonVO;
 import org.example.chatflow.repository.EmojiItemRepository;
 import org.example.chatflow.repository.EmojiPackRepository;
 import org.example.chatflow.repository.UserEmojiPackRepository;
-import org.example.chatflow.repository.UserEmojiItemRepository;
 import org.example.chatflow.service.*;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.AliOssUtil;
@@ -57,8 +56,6 @@ public class EmojiServiceImpl implements EmojiService {
     private final CurrentUserAccessor currentUserAccessor;
 
     private final UserEmojiPackRepository userEmojiPackRepository;
-
-    private final UserEmojiItemRepository userEmojiItemRepository;
 
     private Long getCurrentUserCustomizePackId() {
         Long userId = currentUserAccessor.getCurrentUser().getId();
@@ -182,17 +179,35 @@ public class EmojiServiceImpl implements EmojiService {
 
     @Override
     public CurlResponse<Void> bindEmojiPack(Long param) {
-        return null;
+        VerifyUtil.isTrue(param == null, ErrorCode.VALIDATION_ERROR);
+
+        Long userId = currentUserAccessor.getCurrentUser().getId();
+        VerifyUtil.isTrue(userId == null, ErrorCode.VALIDATION_ERROR);
+
+        boolean exists = emojiPackRepository.existsById(param);
+        VerifyUtil.isTrue(!exists, ErrorCode.EMOJI_NOT_FOUND);
+
+        Integer sort = userEmojiPackRepository.getNextSortValue(userId);
+
+        UserEmojiPack relation = new UserEmojiPack();
+        relation.setUserId(userId);
+        relation.setPackId(param);
+        relation.setSort(sort);
+
+        VerifyUtil.ensureOperationSucceeded(userEmojiPackRepository.save(relation), "绑定失败");
+        return CurlResponse.success();
     }
 
     @Override
     public CurlResponse<Void> unbindEmojiPack(Long param) {
-        return null;
-    }
+        VerifyUtil.isTrue(param == null, ErrorCode.VALIDATION_ERROR);
 
-    @Override
-    public CurlResponse<Void> unbindEmojiItem(Long param) {
-        return null;
+        Long userId = currentUserAccessor.getCurrentUser().getId();
+        VerifyUtil.isTrue(userId == null, ErrorCode.VALIDATION_ERROR);
+
+        boolean removed = userEmojiPackRepository.deleteByUserIdAndPackId(userId, param);
+        VerifyUtil.ensureOperationSucceeded(removed, "解绑失败");
+        return CurlResponse.success();
     }
 
     @Override

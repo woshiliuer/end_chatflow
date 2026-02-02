@@ -23,8 +23,6 @@ public interface EmojiService {
 
     CurlResponse<Void> bindEmojiPack(Long param);
 
-    CurlResponse<Void> unbindEmojiItem(Long param);
-
     CurlResponse<Void> addCustomizeEmoji(CustomizeEmojiDTO dto);
 
     CurlResponse<Void> addEmojiFromMessageFile(AddEmojiFromMessageFileDTO dto);

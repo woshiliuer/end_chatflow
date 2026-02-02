@@ -10,4 +10,8 @@ import java.util.List;
 public interface UserEmojiPackRepository extends BaseRepository<UserEmojiPack, Long> {
 
     List<UserEmojiPack> findByUserId(Long userId);
+
+    Integer getNextSortValue(Long userId);
+
+    boolean deleteByUserIdAndPackId(Long userId, Long packId);
 }

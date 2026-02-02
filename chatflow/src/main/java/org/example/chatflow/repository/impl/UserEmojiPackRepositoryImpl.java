@@ -27,4 +27,33 @@ public class UserEmojiPackRepositoryImpl
             .orderByAsc(UserEmojiPack::getCreateTime)
             .list();
     }
+
+    @Override
+    public Integer getNextSortValue(Long userId) {
+        if (userId == null) {
+            return 1;
+        }
+
+        Integer maxSort = lambdaQuery()
+            .eq(UserEmojiPack::getUserId, userId)
+            .select(UserEmojiPack::getSort)
+            .orderByDesc(UserEmojiPack::getSort)
+            .last("LIMIT 1")
+            .oneOpt()
+            .map(UserEmojiPack::getSort)
+            .orElse(0);
+
+        return maxSort + 1;
+    }
+
+    @Override
+    public boolean deleteByUserIdAndPackId(Long userId, Long packId) {
+        if (userId == null || packId == null) {
+            return false;
+        }
+        return lambdaUpdate()
+            .eq(UserEmojiPack::getUserId, userId)
+            .eq(UserEmojiPack::getPackId, packId)
+            .remove();
+    }
 }
