@@ -149,6 +149,9 @@ public class EmojiServiceImpl implements EmojiService {
         VerifyUtil.isTrue(dto.getPage() == null || dto.getPage() < 1, ErrorCode.VALIDATION_ERROR);
         VerifyUtil.isTrue(dto.getSize() == null || dto.getSize() < 1, ErrorCode.VALIDATION_ERROR);
 
+        Long userId = currentUserAccessor.getCurrentUser().getId();
+        VerifyUtil.isTrue(userId == null, ErrorCode.VALIDATION_ERROR);
+
         String name = StringUtils.trimToNull(dto.getName());
 
         LambdaQueryWrapper<EmojiPack> wrapper = new LambdaQueryWrapper<>();
@@ -165,10 +168,17 @@ public class EmojiServiceImpl implements EmojiService {
         Set<Long> packIds = records.stream().map(EmojiPack::getId).filter(Objects::nonNull).collect(Collectors.toSet());
         Map<Long, FileCommonVO> coverMap = fileService.getBySourceMap(FileSourceTypeConstant.EMOJI_PACK_COVER, packIds);
 
+        Set<Long> boundPackIds = userEmojiPackRepository.findByUserId(userId)
+            .stream()
+            .map(UserEmojiPack::getPackId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
         List<EmojiPackListVO> voRecords = new ArrayList<>();
         for (EmojiPack pack : records) {
             EmojiPackListVO vo = EmojiPackListVO.EmojiPackListVOMapper.INSTANCE.toVO(pack);
             vo.setCover(coverMap.get(pack.getId()));
+            vo.setBound(boundPackIds.contains(pack.getId()));
             voRecords.add(vo);
         }
 
@@ -195,6 +205,31 @@ public class EmojiServiceImpl implements EmojiService {
         relation.setSort(sort);
 
         VerifyUtil.ensureOperationSucceeded(userEmojiPackRepository.save(relation), "绑定失败");
+        return CurlResponse.success();
+    }
+
+    @Override
+    public CurlResponse<Void> deleteCustomizeEmojiItem(Long param) {
+        VerifyUtil.isTrue(param == null, ErrorCode.VALIDATION_ERROR);
+
+        Long userId = currentUserAccessor.getCurrentUser().getId();
+        VerifyUtil.isTrue(userId == null, ErrorCode.VALIDATION_ERROR);
+
+        Long customizePackId = getCurrentUserCustomizePackId();
+        VerifyUtil.isTrue(customizePackId == null, ErrorCode.EMOJI_NOT_FOUND);
+
+        EmojiPack customizePack = emojiPackRepository.findById(customizePackId).orElse(null);
+        VerifyUtil.isTrue(customizePack == null, ErrorCode.EMOJI_NOT_FOUND);
+        VerifyUtil.isTrue(!Integer.valueOf(EmojiPackType.CUSTOMIZE.getCode()).equals(customizePack.getType()), ErrorCode.VALIDATION_ERROR);
+
+        EmojiItem emojiItem = emojiItemRepository.findById(param).orElse(null);
+        VerifyUtil.isTrue(emojiItem == null, ErrorCode.EMOJI_NOT_FOUND);
+        VerifyUtil.isTrue(!Objects.equals(customizePackId, emojiItem.getPackId()), ErrorCode.VALIDATION_ERROR);
+
+        fileService.deleteFile(FileSourceTypeConstant.EMOJI_ITEM_STATIC, emojiItem.getId());
+        fileService.deleteFile(FileSourceTypeConstant.EMOJI_ITEM_GIF, emojiItem.getId());
+
+        VerifyUtil.ensureOperationSucceeded(emojiItemRepository.deleteById(emojiItem.getId()), "删除失败");
         return CurlResponse.success();
     }
 

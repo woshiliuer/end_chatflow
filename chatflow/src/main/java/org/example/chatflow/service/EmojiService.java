@@ -27,5 +27,7 @@ public interface EmojiService {
 
     CurlResponse<Void> addEmojiFromMessageFile(AddEmojiFromMessageFileDTO dto);
 
+    CurlResponse<Void> deleteCustomizeEmojiItem(Long param);
+
     CurlResponse<List<CustomizeEmojisVO>> customizeEmojis();
 }

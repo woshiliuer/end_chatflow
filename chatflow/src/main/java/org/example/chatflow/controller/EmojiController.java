@@ -71,6 +71,12 @@ public class EmojiController {
         return emojiService.addEmojiFromMessageFile(dto);
     }
 
+    @Operation(summary = "删除自定义表情项", description = "参数传表情项Id，仅允许删除当前用户自定义表情包(type=2)下的表情项")
+    @PostMapping("/deleteCustomizeEmojiItem")
+    public CurlResponse<Void> deleteCustomizeEmojiItem(@RequestBody @Validated Param<Long> param) {
+        return emojiService.deleteCustomizeEmojiItem(param.getParam());
+    }
+
     @Operation(summary = "用户的自定义表情包")
     @GetMapping("/customizeEmojis")
     public CurlResponse<List<CustomizeEmojisVO>> customizeEmojis(){
