@@ -33,6 +33,9 @@ public class SessionVO {
     @Schema(description = "最近的消息内容")
     private String content;
 
+    @Schema(description = "最近消息类型：1文本 2表情")
+    private Integer messageType;
+
     @Schema(description = "最近的消息发送时间")
     private Long sendTime;
 

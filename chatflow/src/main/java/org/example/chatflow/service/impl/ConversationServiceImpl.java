@@ -15,11 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
-import org.example.chatflow.common.enums.ConversationStatus;
-import org.example.chatflow.common.enums.ConversationType;
-import org.example.chatflow.common.enums.Deleted;
-import org.example.chatflow.common.enums.ErrorCode;
-import org.example.chatflow.common.enums.GroupRole;
+import org.example.chatflow.common.enums.*;
 import org.example.chatflow.model.entity.ChatGroup;
 import org.example.chatflow.model.entity.Conversation;
 import org.example.chatflow.model.entity.ConversationUser;
@@ -351,6 +347,9 @@ public class ConversationServiceImpl implements ConversationService {
             int unreadCount = unreadCountMap.getOrDefault(conversation.getId(), 0);
             int status = statusByConversation.getOrDefault(conversation.getId(), ConversationStatus.NORMAL.getCode());
             SessionVO sessionVO = SessionVO.SessionVOMapper.INSTANCE.toVO(conversation, message, unreadCount, status);
+            if (MessageType.EMOJI.getCode().equals(message.getMessageType())){
+                sessionVO.setContent("[动画表情]");
+            }
             if (ConversationType.PRIVATE.getCode().equals(conversation.getConversationType())) {
                 User partner = privateConversationUserMap.get(conversation.getId());
                 if (partner != null) {

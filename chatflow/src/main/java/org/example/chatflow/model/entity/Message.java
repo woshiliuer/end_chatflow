@@ -24,7 +24,7 @@ public class Message extends BaseEntity<Long> {
     private Long senderId;
 
     /**
-     * 消息类型：1文本 2图片 3语音
+     * 消息类型：1文本 2表情
      */
     @TableField("message_type")
     private Integer messageType;
