@@ -24,13 +24,11 @@ public final class ThreadLocalUtil {
 
     public static Long getUserId() {
         Long userId = CURRENT_USER_ID.get();
-        VerifyUtil.isTrue(userId == null, ErrorCode.USER_NOT_LOGIN);
         return userId;
     }
 
     public static String getUserNickname() {
         String nickname = CURRENT_USER_NICKNAME.get();
-        VerifyUtil.isTrue(nickname == null, ErrorCode.USER_NOT_LOGIN);
         return nickname;
     }
 

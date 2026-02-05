@@ -1,0 +1,20 @@
+services:
+  chatflow:
+    container_name: chatflow
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${CHATFLOW_API_PORT:-9093}:9093"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: ${TZ:-Asia/Shanghai}
+    networks:
+      - chatflow-net
+
+
+networks:
+  chatflow-net:
+    external: true
+    name: chatflow-net

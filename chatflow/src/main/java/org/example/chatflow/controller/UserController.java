@@ -49,7 +49,6 @@ public class UserController {
 
     @Operation(summary = "注册")
     @PostMapping("/register")
-    @DisableAutoFill
     public CurlResponse<String> register(@RequestBody RegisterDTO dto) {
         return userService.register(dto);
     }

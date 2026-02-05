@@ -1,0 +1,69 @@
+spring:
+  datasource:
+    url: jdbc:mysql://10.1.24.7:3306/chatflow?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: mysql
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      pool-name: HikariPool
+  mail:
+    host: smtp.qq.com
+    username: 1523307407@qq.com
+    password: lehymjjslqjaidci
+    port: 465
+    protocol: smtps
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+  data:
+    redis:
+      host: 10.1.24.7
+      port: 6379
+      database: 1
+      timeout: 3000
+      password: redis
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB
+      max-request-size: 40MB
+
+chatflow:
+  jwt:
+    secret: h2MycACBnf4UfHWUqTvA0zwRWU4iDVyzq8488P3l3FNUt78L6Yo5kwnhRRAdT3wWriEsLH2I
+    expiration-minutes: 7200
+  security:
+    whitelist:
+      - /user/login
+      - /user/register
+      - /user/getVerfCode
+      - /user/token/validate
+      - /user/recoverPassword
+
+
+sky:
+  alioss:
+    endpoint: oss-cn-guangzhou.aliyuncs.com
+    access-key-id: ${ALIBABA_ACCESS_KEY_ID:}
+    access-key-secret: ${ALIBABA_ACCESS_KEY_SECRET:}
+    bucket-name: chat-flow
+
+
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+server:
+  port: 9093
