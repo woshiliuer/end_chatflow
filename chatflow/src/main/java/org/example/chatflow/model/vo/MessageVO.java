@@ -14,6 +14,9 @@ import org.mapstruct.factory.Mappers;
 @Data
 @Schema(description = "消息VO")
 public class MessageVO {
+    @Schema(description = "数据库ID")
+    private Long id;
+
     @NotNull(message = "消息类型不能为空")
     @Schema(description = "消息类型：1文本 2文件 3语音")
     private Integer messageType;

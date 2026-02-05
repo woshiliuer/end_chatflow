@@ -45,12 +45,6 @@ public class FavoriteItem extends BaseEntity<Long> {
     private Long senderId;
 
     /**
-     * 发送人名称
-     */
-    @TableField("sender_name")
-    private String senderName;
-
-    /**
      * 发送时间
      */
     @TableField("send_time")
@@ -61,12 +55,6 @@ public class FavoriteItem extends BaseEntity<Long> {
      */
     @TableField("group_id")
     private Long groupId;
-
-    /**
-     * 群聊名称（source_type=2时使用）
-     */
-    @TableField("group_name")
-    private String groupName;
 
     @TableField(value = "update_user_id", fill = FieldFill.UPDATE)
     private Long updateUserId;

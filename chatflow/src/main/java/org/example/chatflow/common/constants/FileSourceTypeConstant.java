@@ -27,6 +27,11 @@ public class FileSourceTypeConstant {
      */
     public static final String SOCIAL_FEED_FILE = "SOCIAL_FEED_FILE";
 
+    /**
+     * 收藏项文件（收藏表情/图片时，复制文件并绑定到 favorite_item）
+     */
+    public static final String FAVORITE_ITEM_FILE = "FAVORITE_ITEM_FILE";
+
     private FileSourceTypeConstant() {
     }
 }

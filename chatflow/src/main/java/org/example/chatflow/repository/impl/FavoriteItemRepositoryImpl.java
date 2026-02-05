@@ -6,6 +6,9 @@ import org.example.chatflow.model.entity.FavoriteItem;
 import org.example.chatflow.repository.FavoriteItemRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
+import java.util.List;
+
 @Repository
 public class FavoriteItemRepositoryImpl
     extends BaseRepositoryImpl<FavoriteItemMapper, FavoriteItem, Long>
@@ -22,5 +25,17 @@ public class FavoriteItemRepositoryImpl
             .eq(itemType != null, FavoriteItem::getItemType, itemType)
             .orderByDesc(FavoriteItem::getCreateTime)
             .page(p);
+    }
+
+    @Override
+    public List<FavoriteItem> listByUserId(Long userId, Integer itemType) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+        return lambdaQuery()
+            .eq(FavoriteItem::getUserId, userId)
+            .eq(itemType != null, FavoriteItem::getItemType, itemType)
+            .orderByDesc(FavoriteItem::getCreateTime)
+            .list();
     }
 }

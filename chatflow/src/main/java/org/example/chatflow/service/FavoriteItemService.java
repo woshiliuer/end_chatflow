@@ -1,16 +1,19 @@
 package org.example.chatflow.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.example.chatflow.common.entity.CurlResponse;
-import org.example.chatflow.model.dto.favorite.FavoriteItemCreateDTO;
-import org.example.chatflow.model.dto.favorite.FavoriteItemPageQueryDTO;
-import org.example.chatflow.model.vo.favorite.FavoriteItemVO;
+import org.example.chatflow.model.dto.favorite.FavoriteItemCollectFromMessageDTO;
+import org.example.chatflow.model.vo.favorite.FavoriteItemPageVO;
+import org.example.chatflow.model.vo.favorite.FavoriteItemDetailVO;
+
+import java.util.List;
 
 public interface FavoriteItemService {
 
-    CurlResponse<Long> create(FavoriteItemCreateDTO dto);
+    CurlResponse<Long> collectFromMessage(FavoriteItemCollectFromMessageDTO dto);
 
-    CurlResponse<Page<FavoriteItemVO>> page(FavoriteItemPageQueryDTO dto);
+    CurlResponse<List<FavoriteItemPageVO>> list();
 
-    CurlResponse<Boolean> delete(Long id);
+    CurlResponse<FavoriteItemDetailVO> detail(Long favoriteId);
+
+    CurlResponse<Boolean> delete(Long favoriteId);
 }

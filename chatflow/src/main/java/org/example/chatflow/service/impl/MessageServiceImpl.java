@@ -83,6 +83,7 @@ public class MessageServiceImpl implements MessageService {
         List<MessageVO>  messageVOList = new ArrayList<>();
         for (Message message:messageList){
             MessageVO messageVO = MessageVO.MessageVOMapper.INSTANCE.toVO(message);
+            messageVO.setId(message.getId());
             Direction direction;
             User user = userMap.get(message.getSenderId());
             VerifyUtil.isTrue(user == null , ErrorCode.SENDER_NOT_EXISTS);
@@ -210,6 +211,7 @@ public class MessageServiceImpl implements MessageService {
         
         // 11. 构建返回VO
         MessageVO messageVO = MessageVO.MessageVOMapper.INSTANCE.toVO(message);
+        messageVO.setId(message.getId());
         messageVO.setDirection(Direction.USER_TO_FRIEND.getCode());
         messageVO.setMessageFile(messageFile);
         

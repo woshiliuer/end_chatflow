@@ -51,10 +51,8 @@ public class FavoriteItemVO {
         vo.setTextContent(entity.getTextContent());
         vo.setSourceType(entity.getSourceType());
         vo.setSenderId(entity.getSenderId());
-        vo.setSenderName(entity.getSenderName());
         vo.setSendTime(entity.getSendTime());
         vo.setGroupId(entity.getGroupId());
-        vo.setGroupName(entity.getGroupName());
         vo.setCreateTime(entity.getCreateTime());
         return vo;
     }
