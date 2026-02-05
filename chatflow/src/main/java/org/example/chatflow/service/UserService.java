@@ -31,6 +31,8 @@ public interface UserService {
 
     CurlResponse<String> recoverPassword(RecoverPasswordDTO dto);
 
+    CurlResponse<Boolean> updateNotificationEnabled(Integer notificationEnabled);
+
     /**
      * 退出登录，清理在线状态
      */

@@ -26,12 +26,18 @@ import org.example.chatflow.repository.EmojiPackRepository;
 import org.example.chatflow.repository.UserEmojiPackRepository;
 import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.FileService;
-import org.example.chatflow.service.UserService;
-import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.service.OnlineUserService;
+import org.example.chatflow.service.UserService;
 import org.example.chatflow.factory.VerifyCodeStrategyFactory;
 import org.example.chatflow.strategy.VerifyCodeStrategy;
-import org.example.chatflow.utils.*;
+import org.example.chatflow.support.CurrentUserAccessor;
+import org.example.chatflow.utils.AliOssUtil;
+import org.example.chatflow.utils.BcryptUtil;
+import org.example.chatflow.utils.JwtUtil;
+import org.example.chatflow.utils.RedisKeyUtil;
+import org.example.chatflow.utils.RedisUtil;
+import org.example.chatflow.utils.ThreadLocalUtil;
+import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -265,6 +271,18 @@ public class UserServiceImpl implements UserService {
         user.setPassword(password);
         VerifyUtil.ensureOperationSucceeded(userRepository.update(user), ErrorCode.UPDATE_USER_INFO_FAIL);
         return CurlResponse.success("成功重置密码");
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CurlResponse<Boolean> updateNotificationEnabled(Integer notificationEnabled) {
+        VerifyUtil.isTrue(notificationEnabled == null, ErrorCode.VALIDATION_ERROR);
+        VerifyUtil.isTrue(notificationEnabled != 1 && notificationEnabled != 2, ErrorCode.VALIDATION_ERROR);
+
+        User user = checkUserIsExists();
+        user.setNotificationEnabled(notificationEnabled);
+        VerifyUtil.ensureOperationSucceeded(userRepository.update(user), ErrorCode.UPDATE_USER_INFO_FAIL);
+        return CurlResponse.success(Boolean.TRUE);
     }
 
     /**

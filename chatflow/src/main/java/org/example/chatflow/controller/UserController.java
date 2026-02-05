@@ -98,6 +98,12 @@ public class UserController {
         return userService.updateUserInfo(dto);
     }
 
+    @Operation(summary = "更新消息通知开关", description = "参数：1关闭，2开启")
+    @PostMapping("/updateNotificationEnabled")
+    public CurlResponse<Boolean> updateNotificationEnabled(@RequestBody @Validated Param<Integer> param) {
+        return userService.updateNotificationEnabled(param.getParam());
+    }
+
     @Operation(summary = "找回密码")
     @PostMapping("/recoverPassword")
     public CurlResponse<String> recoverPassword(@RequestBody @Validated RecoverPasswordDTO dto) {
