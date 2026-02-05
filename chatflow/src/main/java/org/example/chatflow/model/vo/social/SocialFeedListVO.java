@@ -28,6 +28,9 @@ public class SocialFeedListVO {
     @Schema(description = "评论个数")
     private Long commentCount;
 
+    @Schema(description = "发布者ID")
+    private Long userId;
+
     @Mapper
     public interface SocialFeedListVOMapper {
         SocialFeedListVOMapper INSTANCE = Mappers.getMapper(SocialFeedListVOMapper.class);

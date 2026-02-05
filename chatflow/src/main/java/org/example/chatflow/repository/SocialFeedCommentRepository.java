@@ -14,4 +14,6 @@ public interface SocialFeedCommentRepository extends BaseRepository<SocialFeedCo
     Map<Long, Long> countByFeedIds(Collection<Long> feedIds);
 
     List<SocialFeedComment> findByFeedId(Long feedId);
+
+    boolean deleteByFeedId(Long feedId);
 }

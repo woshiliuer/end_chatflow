@@ -137,6 +137,7 @@ public class SocialFeedServiceImpl implements SocialFeedService {
                 }
                 SocialFeedListVO vo = SocialFeedListVO.SocialFeedListVOMapper.INSTANCE.toVO(feed);
                 vo.setId(feed.getId());
+                vo.setUserId(feed.getCreateUserId());
 
                 Long authorId = feed.getCreateUserId();
                 if (authorId != null) {
@@ -216,6 +217,7 @@ public class SocialFeedServiceImpl implements SocialFeedService {
 
         SocialFeedDetailVO vo = SocialFeedDetailVO.SocialFeedDetailVOMapper.INSTANCE.toVO(feed);
         vo.setId(feed.getId());
+        vo.setUserId(feed.getCreateUserId());
         if (authorId != null) {
             User author = userMap.get(authorId);
             vo.setNickname(author == null ? null : author.getNickname());
@@ -227,5 +229,33 @@ public class SocialFeedServiceImpl implements SocialFeedService {
         vo.setFiles(files);
         vo.setComments(commentVos);
         return CurlResponse.success(vo);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CurlResponse<Boolean> delete(Long feedId) {
+        VerifyUtil.isTrue(feedId == null, ErrorCode.VALIDATION_ERROR);
+
+        Long currentUserId = currentUserAccessor.getCurrentUser().getId();
+        VerifyUtil.isTrue(currentUserId == null, ErrorCode.USER_NOT_LOGIN);
+
+        SocialFeed feed = socialFeedRepository.findById(feedId).orElse(null);
+        VerifyUtil.isTrue(feed == null, ErrorCode.BUSINESS_ERROR);
+        // 验证是否是自己的动态
+        VerifyUtil.isTrue(!currentUserId.equals(feed.getCreateUserId()), ErrorCode.BUSINESS_ERROR);
+
+        // 1. 删除点赞
+        socialFeedLikeRepository.deleteByFeedId(feedId);
+
+        // 2. 删除评论
+        socialFeedCommentRepository.deleteByFeedId(feedId);
+
+        // 3. 删除关联文件记录
+        fileService.deleteFile(FileSourceTypeConstant.SOCIAL_FEED_FILE, feedId);
+
+        // 4. 删除动态本身
+        VerifyUtil.ensureOperationSucceeded(socialFeedRepository.deleteById(feedId), ErrorCode.INTERNAL_ERROR);
+
+        return CurlResponse.success(true);
     }
 }

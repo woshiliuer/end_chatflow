@@ -31,13 +31,14 @@ public class SocialFeedDetailVO {
     @Schema(description = "评论个数")
     private Long commentCount;
 
-    @Schema(description = "我是否点赞")
+    @Schema(description = "发布者ID")
+    private Long userId;
+
+    @Schema(description = "是否已点赞")
     private Boolean isLike;
 
     @Schema(description = "文件列表")
     private List<FileCommonVO> files;
-
-    @Schema(description = "评论列表")
     private List<SocialFeedCommentItemVO> comments;
 
     @Mapper

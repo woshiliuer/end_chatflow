@@ -19,6 +19,16 @@ public class SocialFeedLikeRepositoryImpl
     implements SocialFeedLikeRepository {
 
     @Override
+    public boolean deleteByFeedId(Long feedId) {
+        if (feedId == null) {
+            return false;
+        }
+        return lambdaUpdate()
+                .eq(SocialFeedLike::getFeedId, feedId)
+                .remove();
+    }
+
+    @Override
     public Optional<SocialFeedLike> findByFeedIdAndUserId(Long feedId, Long userId) {
         if (feedId == null || userId == null) {
             return Optional.empty();

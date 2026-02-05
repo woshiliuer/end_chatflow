@@ -16,4 +16,6 @@ public interface SocialFeedService {
     CurlResponse<SocialFeedListTotalVO> list(SocialFeedListQueryDTO dto);
 
     CurlResponse<SocialFeedDetailVO> detail(Long feedId);
+
+    CurlResponse<Boolean> delete(Long feedId);
 }

@@ -14,4 +14,6 @@ public interface SocialFeedLikeRepository extends BaseRepository<SocialFeedLike,
     Optional<SocialFeedLike> findByFeedIdAndUserId(Long feedId, Long userId);
 
     Map<Long, Long> countValidByFeedIds(Collection<Long> feedIds);
+
+    boolean deleteByFeedId(Long feedId);
 }

@@ -18,6 +18,16 @@ public class SocialFeedCommentRepositoryImpl
     implements SocialFeedCommentRepository {
 
     @Override
+    public boolean deleteByFeedId(Long feedId) {
+        if (feedId == null) {
+            return false;
+        }
+        return lambdaUpdate()
+                .eq(SocialFeedComment::getFeedId, feedId)
+                .remove();
+    }
+
+    @Override
     public Map<Long, Long> countByFeedIds(Collection<Long> feedIds) {
         if (feedIds == null || feedIds.isEmpty()) {
             return new LinkedHashMap<>();

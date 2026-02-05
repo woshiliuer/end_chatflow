@@ -41,5 +41,9 @@ public class SocialFeedController {
         return socialFeedService.detail(param.getParam());
     }
 
-
+    @Operation(summary = "删除动态", description = "参数传动态Id")
+    @PostMapping("/delete")
+    public CurlResponse<Boolean> delete(@RequestBody @Validated Param<Long> param) {
+        return socialFeedService.delete(param.getParam());
+    }
 }
