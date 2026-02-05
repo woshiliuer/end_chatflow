@@ -25,17 +25,6 @@ public class Conversation extends BaseEntity<Long> {
     @TableField("group_id")
     private Long groupId;
 
-    /**
-     * 最新消息ID
-     */
-    @TableField("last_message_id")
-    private Long lastMessageId;
-
-    /**
-     * 最新消息时间（时间戳）
-     */
-    @TableField("last_message_time")
-    private Long lastMessageTime;
 
     /**
      * 逻辑删除

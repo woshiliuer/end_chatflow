@@ -425,31 +425,17 @@ public class ConversationServiceImpl implements ConversationService {
 
     private Map<Long, Message> buildLastMessageMap(List<Conversation> conversations,
                                                    Map<Long, List<Message>> messagesByConversation) {
-        Map<Long, Message> messageById = new LinkedHashMap<>();
-        messagesByConversation.values().forEach(messageList ->
-            messageList.stream()
-                .filter(message -> message.getId() != null)
-                .forEach(message -> messageById.putIfAbsent(message.getId(), message))
-        );
-
         Map<Long, Message> result = new LinkedHashMap<>();
         for (Conversation conversation : conversations) {
             Long conversationId = conversation.getId();
             if (conversationId == null) {
                 continue;
             }
-            Message lastMessage = null;
-            Long lastMessageId = conversation.getLastMessageId();
-            if (lastMessageId != null) {
-                lastMessage = messageById.get(lastMessageId);
-            }
-            if (lastMessage == null) {
-                List<Message> messageList = messagesByConversation.get(conversationId);
-                if (messageList != null && !messageList.isEmpty()) {
-                    lastMessage = messageList.get(messageList.size() - 1);
-                }
-            }
-            if (lastMessage != null) {
+            
+            // 直接从消息列表中获取最新消息（已按序号排序）
+            List<Message> messageList = messagesByConversation.get(conversationId);
+            if (messageList != null && !messageList.isEmpty()) {
+                Message lastMessage = messageList.get(messageList.size() - 1);
                 result.put(conversationId, lastMessage);
             }
         }

@@ -174,12 +174,7 @@ public class MessageServiceImpl implements MessageService {
             );
         }
         
-        // 7. 更新会话的最新消息信息
-        conversation.setLastMessageId(message.getId());
-        conversation.setLastMessageTime(message.getSendTime());
-        conversationRepository.update(conversation);
-
-        // 8. 恢复双方会话状态（确保会话不被隐藏）
+        // 7. 恢复双方会话状态（确保会话不被隐藏）
         for (ConversationUser conversationUser : conversationUsers) {
             if (ConversationStatus.HIDDEN.getCode().equals(conversationUser.getStatus())) {
                 conversationUser.setStatus(ConversationStatus.NORMAL.getCode());
