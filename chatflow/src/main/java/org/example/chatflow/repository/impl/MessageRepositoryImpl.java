@@ -17,12 +17,13 @@ public class MessageRepositoryImpl
         implements MessageRepository {
 
     @Override
-    public List<Message> findByConversationIds(Collection<Long> conversationIds) {
+    public List<Message> findByConversationIds(Collection<Long> conversationIds, Long visibleSeq) {
         if (conversationIds == null || conversationIds.isEmpty()) {
             return Collections.emptyList();
         }
         return lambdaQuery()
             .in(Message::getConversationId, conversationIds)
+            .gt(visibleSeq != null && visibleSeq > 0, Message::getSequence, visibleSeq)
             .orderByAsc(Message::getConversationId)
             .orderByAsc(Message::getSequence)
             .list();

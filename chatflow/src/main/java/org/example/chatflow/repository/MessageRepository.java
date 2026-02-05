@@ -10,12 +10,13 @@ import org.example.chatflow.model.entity.Message;
 public interface MessageRepository extends BaseRepository<Message, Long> {
 
     /**
-     * 根据会话ID集合查询消息列表。
+     * 根据会话ID集合查询消息列表，并支持根据起点序号过滤。
      *
      * @param conversationIds 会话ID集合
+     * @param visibleSeq      最小可见序号（仅返回 seq > visibleSeq 的消息）
      * @return 消息列表
      */
-    List<Message> findByConversationIds(Collection<Long> conversationIds);
+    List<Message> findByConversationIds(Collection<Long> conversationIds, Long visibleSeq);
 
     /**
      * 根据会话ID删除消息。

@@ -28,14 +28,14 @@ public enum ConversationStatus {
     /**
      * 状态码
      */
-    private final int code;
+    private final Integer code;
 
     /**
      * 状态描述
      */
     private final String description;
 
-    ConversationStatus(int code, String description) {
+    ConversationStatus(Integer code, String description) {
         this.code = code;
         this.description = description;
     }

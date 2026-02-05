@@ -30,6 +30,12 @@ public class ConversationUser extends BaseEntity<Long> {
     private Long lastReadSeq;
 
     /**
+     * 消息可见起点序号（seq <= visibleSeq 对该成员不可见）
+     */
+    @TableField("visible_seq")
+    private Long visibleSeq;
+
+    /**
      * 最后已读时间（毫秒时间戳）
      */
     @TableField("last_read_time")

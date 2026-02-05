@@ -66,6 +66,7 @@ public class ConversationServiceImpl implements ConversationService {
         }
 
         Map<Long, Long> lastReadSeqByConversation = new LinkedHashMap<>();
+        Map<Long, Long> visibleSeqByConversation = new LinkedHashMap<>();
         Map<Long, Integer> statusByConversation = new LinkedHashMap<>();
         for (ConversationUser relation : relations) {
             Long conversationId = relation.getConversationId();
@@ -81,6 +82,10 @@ public class ConversationServiceImpl implements ConversationService {
             statusByConversation.putIfAbsent(conversationId, status);
             long lastReadSeq = relation.getLastReadSeq() == null ? 0L : relation.getLastReadSeq();
             lastReadSeqByConversation.putIfAbsent(conversationId, lastReadSeq);
+            
+            // 收集每个用户在每个会话的可见起点
+            long visibleSeq = relation.getVisibleSeq() == null ? 0L : relation.getVisibleSeq();
+            visibleSeqByConversation.putIfAbsent(conversationId, visibleSeq);
         }
         if (statusByConversation.isEmpty()) {
             return CurlResponse.success(Collections.emptyList());
@@ -122,8 +127,9 @@ public class ConversationServiceImpl implements ConversationService {
                 OssConstant.DEFAULT_GROUP_AVATAR
         );
 
-        // 拉取消息明细，用于补全最新消息和未读统计
-        Map<Long, List<Message>> messagesByConversation = loadMessagesByConversationIds(conversationIds);
+        // 拉取消息明细，用于补全最新消息和未读统计（需要根据当前用户的可见起点过滤）
+        Map<Long, List<Message>> messagesByConversation = loadMessagesByConversationIdsWithVisibleSeq(
+                conversationIds, visibleSeqByConversation, user.getId());
         Map<Long, Message> lastMessageMap = buildLastMessageMap(conversations, messagesByConversation);
 
         Map<Long, Integer> unreadCountMap = calculateUnreadCounts(
@@ -175,18 +181,27 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     /**
-     * 删除会话（标记为隐藏）
+     * 删除会话（标记为隐藏，并推进可见起点）
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public CurlResponse<String> deleteConversation(Long param) {
         User user = currentUserAccessor.getCurrentUser();
         ConversationUser conversationUser = conversationUserRepository.findByConversationIdAndMemberId(param, user.getId());
         VerifyUtil.isTrue(conversationUser == null, ErrorCode.CONVERSATION_RELATION_NOT_EXISTS);
-        if (!Objects.equals(conversationUser.getStatus(), ConversationStatus.HIDDEN.getCode())) {
-            conversationUser.setStatus(ConversationStatus.HIDDEN.getCode());
-            VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(conversationUser),
-                    ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
-        }
+
+        // 1. 获取会话当前最新的消息序号
+        Long maxSequence = messageRepository.getMaxSequenceByConversationId(param);
+
+        // 2. 更新可见起点（即便已经隐藏，再次删除也会更新起点，达到清空效果）
+        conversationUser.setVisibleSeq(maxSequence != null ? maxSequence : 0L);
+
+        // 3. 设置状态为隐藏
+        conversationUser.setStatus(ConversationStatus.HIDDEN.getCode());
+
+        VerifyUtil.ensureOperationSucceeded(conversationUserRepository.update(conversationUser),
+                ErrorCode.CONVERSATION_USER_UPDATE_FAIL);
+
         return CurlResponse.success("删除成功");
     }
 
@@ -347,7 +362,7 @@ public class ConversationServiceImpl implements ConversationService {
             int unreadCount = unreadCountMap.getOrDefault(conversation.getId(), 0);
             int status = statusByConversation.getOrDefault(conversation.getId(), ConversationStatus.NORMAL.getCode());
             SessionVO sessionVO = SessionVO.SessionVOMapper.INSTANCE.toVO(conversation, message, unreadCount, status);
-            if (MessageType.EMOJI.getCode().equals(message.getMessageType())){
+            if (message != null && MessageType.EMOJI.getCode().equals(message.getMessageType())){
                 sessionVO.setContent("[动画表情]");
             }
             if (ConversationType.PRIVATE.getCode().equals(conversation.getConversationType())) {
@@ -370,11 +385,31 @@ public class ConversationServiceImpl implements ConversationService {
         return sessionVOList;
     }
 
+    private Map<Long, List<Message>> loadMessagesByConversationIdsWithVisibleSeq(
+            Set<Long> conversationIds, Map<Long, Long> visibleSeqByConversation, Long currentUserId) {
+        if (conversationIds == null || conversationIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        
+        Map<Long, List<Message>> result = new LinkedHashMap<>();
+        
+        // 为每个会话单独查询，应用该用户的可见起点过滤
+        for (Long conversationId : conversationIds) {
+            Long visibleSeq = visibleSeqByConversation.getOrDefault(conversationId, 0L);
+            List<Message> messages = messageRepository.findByConversationIds(
+                    Collections.singleton(conversationId), visibleSeq);
+            result.put(conversationId, messages != null ? messages : new ArrayList<>());
+        }
+        
+        return result;
+    }
+
     private Map<Long, List<Message>> loadMessagesByConversationIds(Set<Long> conversationIds) {
         if (conversationIds == null || conversationIds.isEmpty()) {
             return Collections.emptyMap();
         }
-        List<Message> messages = messageRepository.findByConversationIds(conversationIds);
+        // 这里的批量查询用于会话列表，不针对特定用户过滤可见起点（或可以传入 null/0）
+        List<Message> messages = messageRepository.findByConversationIds(conversationIds, 0L);
         Map<Long, List<Message>> grouped = (messages == null || messages.isEmpty())
             ? new LinkedHashMap<>()
             : messages.stream()

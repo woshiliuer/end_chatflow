@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
+import org.example.chatflow.common.enums.ConversationStatus;
 import org.example.chatflow.common.enums.Direction;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.model.dto.MessagePushDTO;
@@ -56,8 +57,17 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public CurlResponse<List<MessageVO>> messageList(Long param) {
         User currentUser = currentUserAccessor.getCurrentUser();
-        List<Message>  messageList = messageRepository.findByConversationIds(Collections.singleton(param));
-        //消息列表提取发送Id到Set
+        
+        // 1. 获取当前用户在该会话的可见起点
+        ConversationUser conversationUser = conversationUserRepository
+                .findByConversationIdAndMemberId(param, currentUser.getId());
+        Long visibleSeq = (conversationUser != null && conversationUser.getVisibleSeq() != null) 
+                ? conversationUser.getVisibleSeq() : 0L;
+
+        // 2. 根据起点过滤消息
+        List<Message> messageList = messageRepository.findByConversationIds(Collections.singleton(param), visibleSeq);
+        
+        // 消息列表提取发送Id到Set
         Set<Long> userIds = messageList.stream().map(
                 Message::getSenderId
         ).collect(Collectors.toSet());
@@ -169,9 +179,15 @@ public class MessageServiceImpl implements MessageService {
         conversation.setLastMessageTime(message.getSendTime());
         conversationRepository.update(conversation);
 
+        // 8. 恢复双方会话状态（确保会话不被隐藏）
+        for (ConversationUser conversationUser : conversationUsers) {
+            if (ConversationStatus.HIDDEN.getCode().equals(conversationUser.getStatus())) {
+                conversationUser.setStatus(ConversationStatus.NORMAL.getCode());
+                conversationUserRepository.update(conversationUser);
+            }
+        }
 
-
-        // 8. 构建WebSocket推送消息
+        // 9. 构建WebSocket推送消息
         MessagePushDTO pushDTO = MessagePushDTO.builder()
                 .id(message.getId())
                 .messageId(message.getId()) // 兼容旧字段
@@ -192,7 +208,7 @@ public class MessageServiceImpl implements MessageService {
                 ))
                 .build();
         
-        // 9. 通过WebSocket推送消息给所有接收者（如果在线）
+        // 10. 通过WebSocket推送消息给所有接收者（如果在线）
         for (Long receiverId : receiverIds) {
             if (onlineUserService.isUserOnline(receiverId)) {
                 String destination = "/user/" + receiverId + "/queue/pm";
@@ -209,7 +225,7 @@ public class MessageServiceImpl implements MessageService {
         // 2. 避免发送者看到重复的消息
         // 3. 如果未来需要支持多端同步，可以在此处添加逻辑，但需要前端配合去重
         
-        // 11. 构建返回VO
+        // 12. 构建返回VO
         MessageVO messageVO = MessageVO.MessageVOMapper.INSTANCE.toVO(message);
         messageVO.setId(message.getId());
         messageVO.setDirection(Direction.USER_TO_FRIEND.getCode());
