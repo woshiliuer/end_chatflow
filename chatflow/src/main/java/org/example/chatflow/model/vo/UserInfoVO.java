@@ -20,6 +20,9 @@ public class UserInfoVO {
     @Schema(description = "用户邮箱")
     private String email;
 
+    @Schema(description = "消息通知是否开启（1：关闭，2：开启）")
+    private Integer notificationEnabled;
+
     @Schema(description = "头像URL")
     private String avatarFullUrl;
 

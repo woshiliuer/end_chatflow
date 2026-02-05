@@ -32,6 +32,12 @@ public class User extends BaseEntity<Long> {
     private String nickname;
 
     /**
+     * 消息通知是否开启（1：关闭，2：开启）
+     */
+    @TableField(value = "notification_enabled")
+    private Integer notificationEnabled;
+
+    /**
      * 个性签名
      */
     @TableField(value = "signature")
