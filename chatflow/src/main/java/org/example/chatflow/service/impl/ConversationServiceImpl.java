@@ -142,7 +142,8 @@ public class ConversationServiceImpl implements ConversationService {
             unreadCountMap,
             statusByConversation,
             userAvatarByUserId,
-            groupAvatarByGroupId);
+            groupAvatarByGroupId,
+            user.getId());
 
         return CurlResponse.success(sessionVOList);
     }
@@ -354,7 +355,8 @@ public class ConversationServiceImpl implements ConversationService {
                                              Map<Long, Integer> unreadCountMap,
                                              Map<Long, Integer> statusByConversation,
                                              Map<Long, String> userAvatarByUserId,
-                                             Map<Long, String> groupAvatarByGroupId) {
+                                             Map<Long, String> groupAvatarByGroupId,
+                                             Long currentUserId) {
         // 逐个会话组装输出字段，重用预先拉好的数据 
         List<SessionVO> sessionVOList = new ArrayList<>(conversations.size());
         for (Conversation conversation : conversations) {
@@ -369,7 +371,12 @@ public class ConversationServiceImpl implements ConversationService {
                 User partner = privateConversationUserMap.get(conversation.getId());
                 if (partner != null) {
                     sessionVO.setRelationId(partner.getId());
-                    sessionVO.setDisplayName(partner.getNickname());
+                    // 优先显示备注
+                    FriendRelation relation = friendRelationRepository.findByUserAndFriendId(currentUserId, partner.getId());
+                    String displayName = (relation != null && !com.aliyuncs.utils.StringUtils.isEmpty(relation.getRemark())) 
+                            ? relation.getRemark() 
+                            : partner.getNickname();
+                    sessionVO.setDisplayName(displayName);
                     sessionVO.setAvatarFullUrl(userAvatarByUserId == null ? null : userAvatarByUserId.get(partner.getId()));
                 }
             } else if (ConversationType.GROUP.getCode().equals(conversation.getConversationType())) {

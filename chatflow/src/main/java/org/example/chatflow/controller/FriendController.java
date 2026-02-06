@@ -6,6 +6,7 @@ import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.entity.Param;
 import org.example.chatflow.model.dto.friend.AddRequestDTO;
 import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
+import org.example.chatflow.model.dto.friend.UpdateRemarkDTO;
 import org.example.chatflow.model.vo.FriendDetailVO;
 import org.example.chatflow.model.vo.FriendRequestListTotalVO;
 import org.example.chatflow.model.vo.FriendRequestListVO;
@@ -67,5 +68,11 @@ public class FriendController {
     @PostMapping("/friendDetail")
     public CurlResponse<FriendDetailVO> friendDetail(@RequestBody @Validated Param<Long> param) {
         return friendService.friendDetail(param.getParam());
+    }
+
+    @Operation(summary = "更新好友备注")
+    @PostMapping("/updateRemark")
+    public CurlResponse<String> updateRemark(@RequestBody @Validated UpdateRemarkDTO dto) {
+        return friendService.updateFriendRemark(dto);
     }
 }

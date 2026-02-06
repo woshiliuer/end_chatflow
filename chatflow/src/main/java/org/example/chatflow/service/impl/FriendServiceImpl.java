@@ -10,6 +10,7 @@ import org.example.chatflow.common.enums.*;
 import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.friend.AddRequestDTO;
 import org.example.chatflow.model.dto.friend.AgreeRequestDTO;
+import org.example.chatflow.model.dto.friend.UpdateRemarkDTO;
 import org.example.chatflow.model.entity.FriendRelation;
 import org.example.chatflow.model.entity.FriendRequest;
 import org.example.chatflow.model.entity.User;
@@ -89,8 +90,8 @@ public class FriendServiceImpl implements FriendService {
             String avatarUrl = avatarByUserId.get(user.getId());
             getFriendListVO.setAvatarFullUrl(avatarUrl);
             getFriendListVO.setRemark(StringUtils.isEmpty(friendRelation.getRemark()) ?
-                    friendRelation.getRemark() :
-                    user.getNickname());
+                    user.getNickname() :
+                    friendRelation.getRemark());
             boolean online = onlineUserService.isUserOnline(user.getId());
             getFriendListVO.setStatus(online ? OnlineStatus.ONLINE.getCode() : OnlineStatus.OFFLINE.getCode());
             getFriendListVOList.add(getFriendListVO);
@@ -306,6 +307,19 @@ public class FriendServiceImpl implements FriendService {
         boolean online = onlineUserService.isUserOnline(friend.getId());
         friendDetailVO.setStatus(online ? OnlineStatus.ONLINE.getCode() : OnlineStatus.OFFLINE.getCode());
         return CurlResponse.success(friendDetailVO);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CurlResponse<String> updateFriendRemark(UpdateRemarkDTO dto) {
+        Long userId = ThreadLocalUtil.getUserId();
+        FriendRelation relation = friendRelationRepository.findByUserAndFriendId(userId, dto.getFriendId());
+        VerifyUtil.isTrue(relation == null, ErrorCode.FRIEND_RELATION_NOT_EXISTS);
+        
+        relation.setRemark(dto.getRemark());
+        VerifyUtil.ensureOperationSucceeded(friendRelationRepository.update(relation), ErrorCode.AGREE_FRIEND_FAIL);
+        
+        return CurlResponse.success("备注更新成功");
     }
 
     private void hideConversationForUser(Long userId, Long friendId) {
