@@ -98,6 +98,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public CurlResponse<String> getVerfCode(GetVerfCodeDTO dto) {
+        checkEmail(dto.getEmail());
         VerifyCodeStrategy strategy = verifyCodeStrategyFactory.getStrategy(dto.getVerfCodeType());
         return strategy.process(dto);
     }
@@ -265,6 +266,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public CurlResponse<String> recoverPassword(RecoverPasswordDTO dto) {
+        checkEmail(dto.getEmail());
         User user = checkUserIsExists(dto.getEmail());
         //检查验证码是否正确
         String redisKey = RedisKeyUtil.buildKey(RedisConstants.RECOVER_VERIFY_CODE_KEY_PREFIX, user.getEmail());

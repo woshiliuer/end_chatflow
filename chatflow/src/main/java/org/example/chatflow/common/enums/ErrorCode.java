@@ -16,7 +16,7 @@ public enum ErrorCode {
     MAIL_SENDER_NOT_CONFIGURED("1004","邮件发送账号未配置"),
     VERIFY_CODE_SEND_FAILED("1005","验证码发送失败"),
     VERIFY_CODE_ALREADY_SENT("1006","验证码已发送，请稍后再试"),
-    VERIFICATION_CODE_ERROR("1007","验证码错误" ),
+    VERIFICATION_CODE_ERROR("1007","验证码错误/过期" ),
     ADD_USER_FAIL("1008","新增用户失败"),
     PASSWORD_LENGTH_ERROR("1009","密码长度必须大于等于8或小于等于12"),
     PASSWORD_MUST_NUM_ENG("1010","密码必须是数字或英文"),

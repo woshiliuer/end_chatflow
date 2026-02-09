@@ -111,6 +111,9 @@ public class FriendServiceImpl implements FriendService {
         if (userId.equals(friend.getId())) {
             throw new BusinessException(ErrorCode.REQUESTID_EQUALS_RECEIVERID);
         }
+        if (userId.equals(dto.getReceiverId())) {
+            throw new BusinessException(ErrorCode.REQUESTID_EQUALS_RECEIVERID);
+        }
         checkFriendRequestIsExists(userId,friend.getId());
 
         FriendRequest friendRequest = bulidRequest(userId,friend,dto);
