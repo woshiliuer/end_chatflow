@@ -49,7 +49,7 @@ public class UserController {
 
     @Operation(summary = "注册")
     @PostMapping("/register")
-    public CurlResponse<String> register(@RequestBody RegisterDTO dto) {
+    public CurlResponse<String> register(@RequestBody @Validated RegisterDTO dto) {
         return userService.register(dto);
     }
 

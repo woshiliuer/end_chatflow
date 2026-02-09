@@ -110,6 +110,7 @@ public class UserServiceImpl implements UserService {
     public CurlResponse<String> register(RegisterDTO dto) {
         //验证用户是否重复
         String email = StringUtils.trimToEmpty(dto.getEmail());
+        checkEmail(email);
         VerifyUtil.isTrue(userRepository.existsByEmail(email),ErrorCode.USER_EXISTS);
         // 验证验证码
         String redisKey = RedisKeyUtil.buildKey(RedisConstants.REGISTER_VERIFY_CODE_KEY_PREFIX, email);
@@ -319,6 +320,13 @@ public class UserServiceImpl implements UserService {
     private void checkPassword(String rawPassword) {
         VerifyUtil.isTrue(rawPassword.length() < 8 || rawPassword.length() > 12, ErrorCode.PASSWORD_LENGTH_ERROR);
         VerifyUtil.isFalse(rawPassword.matches("^[a-zA-Z0-9]+$"), ErrorCode.PASSWORD_MUST_NUM_ENG);
+    }
+
+    private void checkEmail(String email) {
+        VerifyUtil.isTrue(StringUtils.isBlank(email), "邮箱不能为空");
+        // 基础格式校验：local@domain.tld（避免过度严格，先保证明显非法的挡掉）
+        String pattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        VerifyUtil.isFalse(email.matches(pattern), "邮箱格式不正确");
     }
 
     private String buildAvatarFileName(MultipartFile file,Long userId) {
