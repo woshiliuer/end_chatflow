@@ -157,7 +157,7 @@ public class FriendServiceImpl implements FriendService {
         VerifyUtil.isTrue(userToFriend == null,ErrorCode.FRIEND_RELATION_NOT_EXISTS);
         userToFriend.setDeleted(Deleted.HAS_DELETED.getCode());
         //删除好友关系
-        VerifyUtil.ensureOperationSucceeded(friendRelationRepository.update(userToFriend),ErrorCode.DELETE_FRIEND_FAIL);
+        VerifyUtil.ensureOperationSucceeded(friendRelationRepository.deleteById(param),ErrorCode.DELETE_FRIEND_FAIL);
         hideConversationForUser(user.getId(), friend.getId());
         return CurlResponse.success("删除成功");
     }
@@ -199,12 +199,15 @@ public class FriendServiceImpl implements FriendService {
 
 
         // 我收到的申请
+        int toAgreeCount = 0;
         for (FriendRequest friendRequest : inComIn) {
             User requester = friendMap.get(friendRequest.getRequesterId());
             FriendRequestListVO vo = buildReqiestListVO(requester, friendRequest, Direction.FRIEND_TO_USER, avatarByUserId);
             if (vo != null) {
-                if (vo.getRequestStatus().equals(RequestStatus.PENDING.getCode()))
+                if (vo.getRequestStatus().equals(RequestStatus.PENDING.getCode())){
                     pendingCount++;
+                    toAgreeCount++;
+                }
                 voList.add(vo);
             }
         }
@@ -212,6 +215,7 @@ public class FriendServiceImpl implements FriendService {
         vo.setTotal(inComIn.size() +  outGoIn.size());
         vo.setFriendRequestList(voList);
         vo.setPendingCount(pendingCount);
+        vo.setToAgreeCount(toAgreeCount);
         return CurlResponse.success(vo);
     }
 

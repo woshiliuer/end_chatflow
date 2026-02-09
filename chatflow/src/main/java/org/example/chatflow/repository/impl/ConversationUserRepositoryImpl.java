@@ -62,4 +62,14 @@ public class ConversationUserRepositoryImpl
                 .one();
     }
 
+    @Override
+    public ConversationUser findReceiverId(Long conversationId, Long senderId) {
+        if (conversationId == null || senderId == null) {
+            return null;
+        }
+        return lambdaQuery()
+                .eq(ConversationUser::getConversationId, conversationId)
+                .ne(ConversationUser::getMemberId, senderId)
+                .one();
+    }
 }

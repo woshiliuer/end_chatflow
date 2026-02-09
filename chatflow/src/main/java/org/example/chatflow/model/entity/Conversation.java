@@ -13,7 +13,7 @@ import org.example.chatflow.common.entity.BaseEntity;
 @Data
 public class Conversation extends BaseEntity<Long> {
     /**
-     * 会话类型：0单聊 1群聊
+     * 会话类型：1单聊 2群聊
      */
     @TableField("conversation_type")
     private Integer conversationType;

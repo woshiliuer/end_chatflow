@@ -19,4 +19,7 @@ public class FriendRequestListTotalVO {
 
     @Schema(description = "待处理个数")
     int pendingCount;
+
+    @Schema(description = "待同意个数")
+    int toAgreeCount;
 }

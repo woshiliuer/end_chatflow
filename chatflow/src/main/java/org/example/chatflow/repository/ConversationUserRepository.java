@@ -34,4 +34,9 @@ public interface ConversationUserRepository extends BaseRepository<ConversationU
     List<ConversationUser> findByConversationIds(Collection<Long> conversationIds);
 
     ConversationUser findByConversationIdAndMemberId(Long conversationId, Long memberId);
+
+    /**
+     * 查询消息接收者的Id
+     */
+    ConversationUser findReceiverId(Long conversationId, Long senderId);
 }

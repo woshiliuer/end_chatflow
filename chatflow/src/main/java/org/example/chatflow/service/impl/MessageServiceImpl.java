@@ -6,6 +6,7 @@ import org.example.chatflow.common.constants.FileSourceTypeConstant;
 import org.example.chatflow.common.constants.OssConstant;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ConversationStatus;
+import org.example.chatflow.common.enums.ConversationType;
 import org.example.chatflow.common.enums.Direction;
 import org.example.chatflow.common.enums.ErrorCode;
 import org.example.chatflow.model.dto.MessagePushDTO;
@@ -25,7 +26,6 @@ import org.example.chatflow.service.FileService;
 import org.example.chatflow.service.MessageService;
 import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
-import org.example.chatflow.utils.AliOssUtil;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -119,17 +119,21 @@ public class MessageServiceImpl implements MessageService {
         User currentUser = currentUserAccessor.getCurrentUser();
         Long senderId = currentUser.getId();
 
-        //查询接收者用户Id
+        //查询发送者用户Id
         User sender = userRepository.findById(senderId).orElse(null);
         VerifyUtil.isTrue(sender == null , ErrorCode.SENDER_NOT_EXISTS);
 
         // 1. 验证会话是否存在
         Conversation conversation = conversationRepository.findById(dto.getConversationId())
                 .orElseThrow(() -> new RuntimeException(ErrorCode.CONVERSATION_NOT_FOUND.getMessage()));
-        
+        //如果会话是单聊，查询是否存在双向的好友关系，否者不可发送
+        if (conversation.getConversationType() == ConversationType.PRIVATE.getCode()){
+            ConversationUser conversationUser = conversationUserRepository.findReceiverId(conversation.getId(),senderId);
+            //TODO
+        }
         // 2. 查询会话的所有参与者
         List<ConversationUser> conversationUsers = conversationUserRepository
-                .findByConversationIds(Collections.singleton(dto.getConversationId()));
+                .findByConversationIds(Collections.singleton(conversation.getId()));
         VerifyUtil.isTrue(conversationUsers == null || conversationUsers.isEmpty(), 
                 ErrorCode.CONVERSATION_USER_NOT_FOUND);
         
