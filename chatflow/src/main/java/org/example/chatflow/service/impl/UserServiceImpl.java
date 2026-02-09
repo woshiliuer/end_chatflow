@@ -76,8 +76,7 @@ public class UserServiceImpl implements UserService {
         String password = dto.getPassword();
         User user = userRepository.findByEmail(email);
         //查询账号是否存在
-        Long userId = user.getId();
-        VerifyUtil.isTrue(user == null || userId == null || userId <= 0, ErrorCode.USER_NOT_EXISTS);
+        VerifyUtil.isTrue(user == null, ErrorCode.USER_NOT_EXISTS);
         //验证密码是否正确
         VerifyUtil.isFalse(bcryptUtil.matches(password,user.getPassword()),ErrorCode.USER_PASSWORD_ERROR);
         //生成token
@@ -143,13 +142,23 @@ public class UserServiceImpl implements UserService {
         ));
         //删除验证码
         redisUtil.del(redisKey);
-        //初始化表情包库
-        EmojiPack emojiPack = emojiPackRepository.findDefalt();
+        //默认表情
+        EmojiPack defaultEmojiPack = emojiPackRepository.findDefalt();
         UserEmojiPack userEmojiPack = new UserEmojiPack();
         userEmojiPack.setUserId(user.getId());
-        userEmojiPack.setPackId(emojiPack.getId());
+        userEmojiPack.setPackId(defaultEmojiPack.getId());
         userEmojiPack.setSort(1);
         userEmojiPackRepository.save(userEmojiPack);
+        //自定义表情
+        EmojiPack cusEmojiPack = new EmojiPack();
+        cusEmojiPack.setName("自定义表情");
+        cusEmojiPack.setType(2);
+        emojiPackRepository.save(cusEmojiPack);
+        UserEmojiPack  userEmojiPack1 = new UserEmojiPack();
+        userEmojiPack1.setUserId(user.getId());
+        userEmojiPack1.setPackId(cusEmojiPack.getId());
+        userEmojiPack1.setSort(2);
+        userEmojiPackRepository.save(userEmojiPack1);
         return CurlResponse.success("注册成功");
     }
 

@@ -21,7 +21,7 @@ public class EmojiPack extends BaseEntity<Long> {
     private String name;
 
     /**
-     * 表情包类型：1默认表情包 2自定义表情包
+     * 表情包类型：1-默认 2-自定义 3-官方
      */
     @TableField("type")
     private Integer type;
