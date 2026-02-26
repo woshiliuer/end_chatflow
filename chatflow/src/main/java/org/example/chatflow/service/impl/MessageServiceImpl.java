@@ -9,19 +9,14 @@ import org.example.chatflow.common.enums.ConversationStatus;
 import org.example.chatflow.common.enums.ConversationType;
 import org.example.chatflow.common.enums.Direction;
 import org.example.chatflow.common.enums.ErrorCode;
+import org.example.chatflow.common.exception.BusinessException;
 import org.example.chatflow.model.dto.MessagePushDTO;
 import org.example.chatflow.model.dto.SendMessageDTO;
 import org.example.chatflow.model.dto.common.FileCommonDTO;
-import org.example.chatflow.model.entity.Conversation;
-import org.example.chatflow.model.entity.ConversationUser;
-import org.example.chatflow.model.entity.Message;
-import org.example.chatflow.model.entity.User;
+import org.example.chatflow.model.entity.*;
 import org.example.chatflow.model.vo.MessageVO;
 import org.example.chatflow.model.vo.common.FileCommonVO;
-import org.example.chatflow.repository.ConversationRepository;
-import org.example.chatflow.repository.ConversationUserRepository;
-import org.example.chatflow.repository.MessageRepository;
-import org.example.chatflow.repository.UserRepository;
+import org.example.chatflow.repository.*;
 import org.example.chatflow.service.FileService;
 import org.example.chatflow.service.MessageService;
 import org.example.chatflow.service.OnlineUserService;
@@ -51,6 +46,7 @@ public class MessageServiceImpl implements MessageService {
     private final SimpMessagingTemplate messagingTemplate;
     private final UserRepository userRepository;
     private final FileService fileService;
+    private final FriendRelationRepository friendRelationRepository;
     /**
      * 消息列表
      */
@@ -129,7 +125,15 @@ public class MessageServiceImpl implements MessageService {
         //如果会话是单聊，查询是否存在双向的好友关系，否者不可发送
         if (conversation.getConversationType() == ConversationType.PRIVATE.getCode()){
             ConversationUser conversationUser = conversationUserRepository.findReceiverId(conversation.getId(),senderId);
-            //TODO
+            Long receiverId = conversationUser.getMemberId();
+            FriendRelation relation1 = friendRelationRepository.findByUserAndFriendId(senderId,receiverId);
+            FriendRelation relation2 = friendRelationRepository.findByUserAndFriendId(receiverId,senderId);
+            if (relation2 == null){
+                throw new BusinessException("对方已将您删除/拉黑");
+            }
+            if (relation1 == null){
+                throw new BusinessException("您将对方删除/拉黑");
+            }
         }
         // 2. 查询会话的所有参与者
         List<ConversationUser> conversationUsers = conversationUserRepository
