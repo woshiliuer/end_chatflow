@@ -2,17 +2,17 @@ package org.example.chatflow.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.chatflow.model.vo.common.FileCommonVO;
+
+import java.util.List;
 
 /**
  * WebSocket消息推送DTO
  * @author by zzr
  */
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "WebSocket消息推送")
@@ -56,5 +56,8 @@ public class MessagePushDTO {
     
     @Schema(description = "状态：1正常 2撤回")
     private Integer status;
+
+    @Schema(description = "接收者ID列表（用于Redis广播）")
+    private List<Long> receiverIds;
 }
 

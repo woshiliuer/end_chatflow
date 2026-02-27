@@ -1,5 +1,6 @@
 package org.example.chatflow.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.common.constants.FileSourceTypeConstant;
@@ -23,6 +24,7 @@ import org.example.chatflow.service.OnlineUserService;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.VerifyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +49,8 @@ public class MessageServiceImpl implements MessageService {
     private final UserRepository userRepository;
     private final FileService fileService;
     private final FriendRelationRepository friendRelationRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
     /**
      * 消息列表
      */
@@ -191,42 +195,43 @@ public class MessageServiceImpl implements MessageService {
         }
 
         // 9. 构建WebSocket推送消息
-        MessagePushDTO pushDTO = MessagePushDTO.builder()
-                .id(message.getId())
-                .messageId(message.getId()) // 兼容旧字段
-                .conversationId(message.getConversationId())
-                .from(senderId)
-                .senderId(senderId) // 兼容旧字段
-                .senderNickname(currentUser.getNickname())
-                .messageType(message.getMessageType())
-                .content(message.getContent())
-                .messageFile(messageFile)
-                .sequence(message.getSequence())
-                .sendTime(message.getSendTime())
-                .status(message.getStatus())
-                .avatarFullUrl(fileService.getLatestFullUrl(
-                        FileSourceTypeConstant.USER_AVATAR,
-                        sender.getId(),
-                        OssConstant.DEFAULT_AVATAR
-                ))
-                .build();
+        MessagePushDTO pushDTO = new MessagePushDTO();
+        pushDTO.setId(message.getId());
+        pushDTO.setMessageId(message.getId()); // 兼容旧字段
+        pushDTO.setConversationId(message.getConversationId());
+        pushDTO.setFrom(senderId);
+        pushDTO.setSenderId(senderId); // 兼容旧字段
+        pushDTO.setSenderNickname(currentUser.getNickname());
+        pushDTO.setMessageType(message.getMessageType());
+        pushDTO.setContent(message.getContent());
+        pushDTO.setMessageFile(messageFile);
+        pushDTO.setSequence(message.getSequence());
+        pushDTO.setSendTime(message.getSendTime());
+        pushDTO.setStatus(message.getStatus());
+        pushDTO.setAvatarFullUrl(fileService.getLatestFullUrl(
+                FileSourceTypeConstant.USER_AVATAR,
+                sender.getId(),
+                OssConstant.DEFAULT_AVATAR
+        ));
+        pushDTO.setReceiverIds(receiverIds); // 添加接收者列表，用于Redis广播
         
-        // 10. 通过WebSocket推送消息给所有接收者（如果在线）
-        for (Long receiverId : receiverIds) {
-            if (onlineUserService.isUserOnline(receiverId)) {
-                String destination = "/user/" + receiverId + "/queue/pm";
-                messagingTemplate.convertAndSend(destination, pushDTO);
-                //TODO 如果发送更成功还要设置为已读
-                log.info("消息已推送给接收者 userId={}, destination={}", receiverId, destination);
-            } else {
-                log.info("接收者不在线，消息已保存 userId={}", receiverId);
+        // 10. 通过Redis发布消息，所有实例都能收到，然后各自推给本地在线用户
+        try {
+            String messageJson = objectMapper.writeValueAsString(pushDTO);
+            redisTemplate.convertAndSend("chat:message", messageJson);
+            log.info("消息已发布到Redis: conversationId={}, senderId={}, receiverCount={}",
+                    conversation.getId(), senderId, receiverIds.size());
+        } catch (Exception e) {
+            log.error("发布消息到Redis失败", e);
+            // 降级：直接本地推送（兼容单实例场景）
+            for (Long receiverId : receiverIds) {
+                if (onlineUserService.isUserOnline(receiverId)) {
+                    String destination = "/user/" + receiverId + "/queue/pm";
+                    messagingTemplate.convertAndSend(destination, pushDTO);
+                    log.info("降级直接推送: userId={}", receiverId);
+                }
             }
         }
-        
-        // 注意：不再通过WebSocket推送给发送者本人，因为：
-        // 1. 前端已通过HTTP响应获得完整消息信息并做了乐观更新
-        // 2. 避免发送者看到重复的消息
-        // 3. 如果未来需要支持多端同步，可以在此处添加逻辑，但需要前端配合去重
         
         // 12. 构建返回VO
         MessageVO messageVO = MessageVO.MessageVOMapper.INSTANCE.toVO(message);
