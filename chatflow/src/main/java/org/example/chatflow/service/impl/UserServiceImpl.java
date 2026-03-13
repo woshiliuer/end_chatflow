@@ -161,6 +161,16 @@ public class UserServiceImpl implements UserService {
         userEmojiPack1.setPackId(cusEmojiPack.getId());
         userEmojiPack1.setSort(2);
         userEmojiPackRepository.save(userEmojiPack1);
+        //给自定义表情包加个封面
+        fileService.saveFile(FileCommonDTO.FileCommonDTOMapper.INSTANCE.toDTO(
+                FileSourceTypeConstant.EMOJI_PACK_COVER,
+                cusEmojiPack.getId(),
+                "PNG",
+                OssConstant.CUSTOMIZE_EMJIO_PACK_COVER.substring(OssConstant.CUSTOMIZE_EMJIO_PACK_COVER.lastIndexOf("/")),
+                null,
+                OssConstant.CUSTOMIZE_EMJIO_PACK_COVER,
+                null
+        ));
         return CurlResponse.success("注册成功");
     }
 

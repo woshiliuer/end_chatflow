@@ -14,6 +14,8 @@ public class OssConstant {
 
     public static final String DEFAULT_GROUP_AVATAR = "default-avatar/default-group.jpg";
 
+    public static final String CUSTOMIZE_EMJIO_PACK_COVER = "emoji/cover/爱心.png";
+
     public static String buildFullUrl(String url) {
         return OssConstant.BASE_URL + url;
     }
