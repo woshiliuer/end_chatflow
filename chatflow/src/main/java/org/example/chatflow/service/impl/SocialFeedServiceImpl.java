@@ -14,11 +14,9 @@ import org.example.chatflow.model.dto.social.SocialFeedPublishDTO;
 import org.example.chatflow.model.entity.SocialFeedComment;
 import org.example.chatflow.model.entity.SocialFeedLike;
 import org.example.chatflow.model.entity.User;
-import org.example.chatflow.repository.SocialFeedRepository;
+import org.example.chatflow.repository.*;
 import org.example.chatflow.model.entity.SocialFeed;
-import org.example.chatflow.repository.SocialFeedCommentRepository;
-import org.example.chatflow.repository.SocialFeedLikeRepository;
-import org.example.chatflow.repository.UserRepository;
+import org.example.chatflow.model.entity.FriendRelation;
 import org.example.chatflow.model.vo.common.FileCommonVO;
 import org.example.chatflow.model.vo.social.SocialFeedCommentItemVO;
 import org.example.chatflow.model.vo.social.SocialFeedDetailVO;
@@ -50,6 +48,7 @@ public class SocialFeedServiceImpl implements SocialFeedService {
     private final SocialFeedLikeRepository socialFeedLikeRepository;
     private final SocialFeedCommentRepository socialFeedCommentRepository;
     private final UserRepository userRepository;
+    private final FriendRelationRepository friendRelationRepository;
     private final CurrentUserAccessor currentUserAccessor;
 
     @Override
@@ -101,8 +100,23 @@ public class SocialFeedServiceImpl implements SocialFeedService {
         VerifyUtil.isTrue(dto == null, ErrorCode.VALIDATION_ERROR);
         VerifyUtil.isTrue(dto.getPage() == null || dto.getSize() == null, ErrorCode.VALIDATION_ERROR);
 
+        Long currentUserId = currentUserAccessor.getCurrentUser().getId();
+        VerifyUtil.isTrue(currentUserId == null, ErrorCode.USER_NOT_LOGIN);
+
+        // 获取当前用户的好友ID列表（包括自己）
+        List<FriendRelation> friendRelations = friendRelationRepository.getFriendRelationByUserId(currentUserId);
+        Set<Long> friendIds = friendRelations.stream()
+                .map(FriendRelation::getFriendId)
+                .collect(Collectors.toSet());
+        friendIds.add(currentUserId); // 加上自己，可以看到自己发布的动态
+
         Page<SocialFeed> page = socialFeedRepository.pageByContent(dto.getPage(), dto.getSize(), dto.getContent());
         List<SocialFeed> feeds = page == null ? Collections.emptyList() : page.getRecords();
+
+        // 过滤掉非好友发布的动态
+        feeds = feeds.stream()
+                .filter(feed -> feed != null && feed.getCreateUserId() != null && friendIds.contains(feed.getCreateUserId()))
+                .collect(Collectors.toList());
 
         Set<Long> feedIds = new HashSet<>();
         Set<Long> authorIds = new HashSet<>();

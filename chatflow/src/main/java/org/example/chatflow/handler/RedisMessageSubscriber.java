@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.chatflow.model.dto.MessagePushDTO;
+import org.example.chatflow.model.entity.User;
+import org.example.chatflow.repository.UserRepository;
 import org.example.chatflow.service.OnlineUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
@@ -26,6 +28,7 @@ public class RedisMessageSubscriber implements MessageListener {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final OnlineUserService onlineUserService;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -45,9 +48,16 @@ public class RedisMessageSubscriber implements MessageListener {
                 return;
             }
 
-            // 3. 遍历接收者，检查是否在本实例在线，如果是则推送
+            // 3. 遍历接收者，检查是否在本实例在线且通知开启，如果是则推送
             for (Long receiverId : receiverIds) {
                 if (onlineUserService.isUserOnline(receiverId)) {
+                    // 检查用户通知设置
+                    User user = userRepository.findById(receiverId).orElse(null);
+                    if (user != null && user.getNotificationEnabled() != null && user.getNotificationEnabled() == 1) {
+                        // 通知关闭，跳过推送
+                        log.debug("用户通知已关闭，跳过推送: userId={}", receiverId);
+                        continue;
+                    }
                     String destination = "/user/" + receiverId + "/queue/pm";
                     messagingTemplate.convertAndSend(destination, pushDTO);
                     log.info("消息已推送给本地用户: userId={}, destination={}", receiverId, destination);

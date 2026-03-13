@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.example.chatflow.common.entity.CurlResponse;
 import org.example.chatflow.common.enums.ErrorCode;
+import org.example.chatflow.model.entity.SocialFeed;
 import org.example.chatflow.model.entity.SocialFeedComment;
+import org.example.chatflow.repository.FriendRelationRepository;
 import org.example.chatflow.repository.SocialFeedCommentRepository;
+import org.example.chatflow.repository.SocialFeedRepository;
 import org.example.chatflow.service.SocialFeedCommentService;
 import org.example.chatflow.support.CurrentUserAccessor;
 import org.example.chatflow.utils.VerifyUtil;
@@ -18,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class SocialFeedCommentServiceImpl implements SocialFeedCommentService {
 
     private final SocialFeedCommentRepository socialFeedCommentRepository;
+    private final SocialFeedRepository socialFeedRepository;
+    private final FriendRelationRepository friendRelationRepository;
     private final CurrentUserAccessor currentUserAccessor;
 
     @Override
@@ -29,6 +34,20 @@ public class SocialFeedCommentServiceImpl implements SocialFeedCommentService {
 
         Long userId = currentUserAccessor.getCurrentUser().getId();
         VerifyUtil.isTrue(userId == null, ErrorCode.USER_NOT_LOGIN);
+
+        // 获取动态信息
+        SocialFeed feed = socialFeedRepository.findById(feedId).orElse(null);
+        VerifyUtil.isTrue(feed == null, ErrorCode.BUSINESS_ERROR);
+
+        Long authorId = feed.getCreateUserId();
+        VerifyUtil.isTrue(authorId == null, ErrorCode.BUSINESS_ERROR);
+
+        // 验证是否是好友关系（自己评论自己的动态也允许）
+        if (!userId.equals(authorId)) {
+            // 检查是否是好友
+            boolean isFriend = friendRelationRepository.findByUserAndFriendId(userId, authorId) != null;
+            VerifyUtil.isTrue(!isFriend, ErrorCode.BUSINESS_ERROR);
+        }
 
         SocialFeedComment comment = new SocialFeedComment();
         comment.setFeedId(feedId);
